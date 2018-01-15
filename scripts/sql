@@ -1,0 +1,4 @@
+# 2017-11-03
+ALTER TABLE job_his ADD COLUMN call_back_url VARCHAR(250) NULL
+ALTER TABLE next_job ADD COLUMN call_back_url VARCHAR(250) NULL
+ALTER TABLE next_job ADD COLUMN circle INT(11) NULL
