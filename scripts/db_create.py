@@ -8,7 +8,7 @@ __author__ = 'ArthurMok'
 
 
 def create_db():
-    from assets import db
+    from insp import db
     db.create_all()
 # if not os.path.exists(SQLALCHEMY_MIGRATE_REPO):
 #     api.create(SQLALCHEMY_MIGRATE_REPO, 'database repository')

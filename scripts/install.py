@@ -161,7 +161,7 @@ class PreSetup(object):
 
     def _init_nginx_uwsgi(self):
         bash("mkdir %s/logs" % install_dir)
-        cmd = "cp %s/assets.conf /usr/local/nginx/conf/vhost/ && cp %s/sched_uwsgi_ini /usr/local/nginx/conf/conf/" % (conf_dir, conf_dir)
+        cmd = "cp %s/asset.conf /usr/local/nginx/conf/vhost/ && cp %s/sched_uwsgi_ini /usr/local/nginx/conf/conf/" % (conf_dir, conf_dir)
         bash(cmd)
         cmd = "cd %s && %s/start_stop_service.sh start" % (install_dir, install_dir)
         ret_code = bash(cmd)
