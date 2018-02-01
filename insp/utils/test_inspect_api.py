@@ -4,6 +4,7 @@ import json
 import requests
 import os
 from config import D_UP_LOADS
+
 header = {
     # "Host": ob['domain'],
     # "Connection": "keep-alive",
@@ -43,50 +44,63 @@ def test_get_system_assess():
 def test_post_system_assess():
     url = "http://127.0.0.1:8092/insp/api/v1.0/systems/assess/1"
     data_dict = {
-        "system_id": 1,
-        "业务信息安全保护等级自评": {
-            "社会秩序、公共利益": {
-                "严重损害": False,
-                "特别严重损害": False,
-                "一般损害": True
+
+        "business_assess": {
+            "country": {
+                "serious": False,
+                "sspecial": False,
+                "normal": True
             },
-            "国家安全": {
-                "严重损害": False,
-                "特别严重损害": False,
-                "一般损害": True
+            "social": {
+                "serious": False,
+                "sspecial": False,
+                "normal": True
             },
-            "公民、法人和其他组织的合法权益": {
-                "严重损害": False,
-                "特别严重损害": False,
-                "一般损害": True
+            "citizen": {
+                "serious": False,
+                "sspecial": False,
+                "normal": True
             }
         },
-        "系统服务安全保护等级自评": {
-            "社会秩序、公共利益": {
-                "严重损害": True,
-                "特别严重损害": False,
-                "一般损害": False
+        "system_assess": {
+            "country": {
+                "serious": True,
+                "sspecial": False,
+                "normal": False
             },
-            "国家安全": {
-                "严重损害": True,
-                "特别严重损害": False,
-                "一般损害": False
+            "social": {
+                "serious": True,
+                "sspecial": False,
+                "normal": False
             },
-            "公民、法人和其他组织的合法权益": {
-                "严重损害": True,
-                "特别严重损害": False,
-                "一般损害": False
+            "citizen": {
+                "serious": True,
+                "sspecial": False,
+                "normal": False
             }
-        }
-    }
+        },
+        "system_id": 1,
 
-    resp = requests.post(url, json=json.dumps(data_dict), headers=header)
-    print json.dumps(resp.json())
+        "status": True
+    }
+    print json.dumps(data_dict)
+    # resp = requests.post(url, json=json.dumps(data_dict), headers=header)
+    # print json.dumps(resp.json())
 
 
 def test_post_demands():
     url = "http://127.0.0.1:8092/insp/api/v1.0/demands"
     requests.post(url)
+
+
+def test_post_manage_demands():
+    url = "http://127.0.0.1:8092/insp/api/v1.0/manage/demands"
+    requests.post(url)
+
+
+def test_get_manage_demands():
+    url = "http://127.0.0.1:8092/insp/api/v1.0/manage/demands"
+    requests.get(url)
 
 
 def test_get_tech_assess():
@@ -112,5 +126,7 @@ if __name__ == '__main__':
     # test_get_system_assess()
     # test_post_system_assess()
     # test_post_demands()
+    # test_post_manage_demands()
+    # test_get_manage_demands()
     test_get_tech_assess()
     # test_post_tech_assess()

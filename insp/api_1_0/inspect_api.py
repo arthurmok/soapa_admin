@@ -75,9 +75,9 @@ class InspectSystemsAssessApi(Resource):
             insp_system = db.session.query(InspectSystems).filter(InspectSystems.id == system_id).first()
             data_json = request.get_json()
             data_dict = json.loads(data_json)
-            business_dict = data_dict.get(u'业务信息安全保护等级自评')
+            business_dict = data_dict.get('business_assess')
             if business_dict:
-                assess_type_id = InspectAssessType._get_id('业务信息安全保护等级自评')
+                assess_type_id = InspectAssessType._get_id('business_assess')
                 db.session.query(InspectSystemsAssess).filter(InspectSystemsAssess.system_id == system_id,
                                                               InspectSystemsAssess.assess_type_id ==
                                                               assess_type_id).delete()
@@ -101,9 +101,9 @@ class InspectSystemsAssessApi(Resource):
                 db.session.add(insp_system)
                 db.session.commit()
 
-            system_dict = data_dict.get(u'系统服务安全保护等级自评')
+            system_dict = data_dict.get('system_assess')
             if system_dict:
-                assess_type_id = InspectAssessType._get_id('系统服务安全保护等级自评')
+                assess_type_id = InspectAssessType._get_id('system_assess')
                 db.session.query(InspectSystemsAssess).filter(InspectSystemsAssess.system_id == system_id,
                                                               InspectSystemsAssess.assess_type_id ==
                                                               assess_type_id).delete()
@@ -161,7 +161,8 @@ class InspectTechAssessApi(Resource):
         except Exception, e:
             logger.error(e)
             return jsonify({"status": False, "desc": "获取安全保护等级技术细则自评信息失败"})
-        return jsonify({"status": True, "tech_assess": tech_assess_dict})
+        tech_assess_dict["status"] = True
+        return jsonify(tech_assess_dict)
 
     def post(self, system_id):
         try:
