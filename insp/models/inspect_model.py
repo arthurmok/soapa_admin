@@ -215,15 +215,17 @@ class InspectTechAssess(db.Model):
         self.tech_demand_check = tech_demand_check
 
     def _to_dict(self):
-        tech_assess = {
-            self.tech_demand.tech_type.tech_classify.name: {
-                self.tech_demand.tech_type.name: {
-                    self.tech_demand.name: self.tech_demand_check
-                }
-            }
-        }
+        # tech_assess = {
+        #     self.tech_demand.tech_type.tech_classify.name: {
+        #         self.tech_demand.tech_type.name: {
+        #             self.tech_demand.name: self.tech_demand_check
+        #         }
+        #     }
+        # }
         # tech_assess_dict = {
         #     "system_id": self.system_id,
         #     "tech_assess": tech_assess
         # }
-        return tech_assess
+        return {
+                    self.tech_demand.name: self.tech_demand_check
+                }

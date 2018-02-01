@@ -149,15 +149,13 @@ class InspectTechAssessApi(Resource):
             tech_assess_dict = {
                 'system_id': system_id,
                 'security_level': inspect_system.security_level,
-                'tech_assess': InspectTechDemands.gen_tech_demands_assess(inspect_system.security_level)
+                'tech_assess': {}
             }
 
             for demand_assess in db.session.query(InspectTechAssess).filter(InspectTechAssess.system_id == system_id).all():
-                classify_name = demand_assess.tech_demand.tech_type.tech_classify.name
-                tech_type_name = demand_assess.tech_demand.tech_type.name
-                tech_assess_dict['tech_assess'][classify_name][tech_type_name][demand_assess.tech_demand.name] \
-                    = demand_assess.tech_demand_check
-            b = json.dumps(tech_assess_dict)
+
+                tech_assess_dict['tech_assess'][demand_assess.tech_demand.name] = demand_assess.tech_demand_check
+            # b = json.dumps(tech_assess_dict)
         except Exception, e:
             logger.error(e)
             return jsonify({"status": False, "desc": "获取安全保护等级技术细则自评信息失败"})
@@ -167,7 +165,7 @@ class InspectTechAssessApi(Resource):
     def post(self, system_id):
         try:
             demands_json = request.get_json()
-            demands_list = json.loads(demands_json)
+            demands_assess_dict = json.loads(demands_json)
             inspect_system = db.session.query(InspectSystems).filter(InspectSystems.id == system_id).first()
             if not inspect_system or inspect_system.security_level == 0:
                 return jsonify({"status": False, "desc": "安全保护等级自评尚未完成"})
@@ -175,9 +173,7 @@ class InspectTechAssessApi(Resource):
             for tech_demand in db.session.query(InspectTechDemands).filter(
                         InspectTechDemands.level == inspect_system.security_level).all():
                 tech_demand_id = tech_demand.id
-                tech_demand_check = False
-                if tech_demand.name in demands_list:
-                    tech_demand_check = True
+                tech_demand_check = demands_assess_dict['tech_assess'].get(tech_demand.name, False)
                 tech_demand_assess = InspectTechAssess(system_id, tech_demand_id, tech_demand_check)
                 db.session.add(tech_demand_assess)
                 db.session.commit()

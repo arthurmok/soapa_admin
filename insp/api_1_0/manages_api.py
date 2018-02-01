@@ -60,19 +60,19 @@ class ManageDemandsApi(Resource):
                 db.session.flush()
                 db.session.commit()
             classify_id = classify.id
-            Manage_type = db.session.query(InspectManageTypes).filter(InspectManageTypes.name == type_name).first()
-            if not Manage_type:
-                Manage_type = InspectManageTypes(type_name, classify_id, type_name)
-                db.session.add(Manage_type)
+            manage_type = db.session.query(InspectManageTypes).filter(InspectManageTypes.name == type_name).first()
+            if not manage_type:
+                manage_type = InspectManageTypes(type_name, classify_id, type_name)
+                db.session.add(manage_type)
                 db.session.flush()
                 db.session.commit()
-            Manage_type_id = Manage_type.id
+            manage_type_id = manage_type.id
             demand = db.session.query(InspectManageDemands).filter(InspectManageDemands.name == demand_name,
                                                                  InspectManageDemands.level == level).first()
             if demand:
                 print demand.id, demand.name, demand.level
             else:
-                demand = InspectManageDemands(demand_name, level, Manage_type_id, demand_name)
+                demand = InspectManageDemands(demand_name, level, manage_type_id, demand_name)
                 db.session.add(demand)
                 db.session.commit()
 

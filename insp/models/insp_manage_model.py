@@ -21,13 +21,13 @@ class InspectManageTypes(db.Model):
     __tablename__ = "inspect_Manage_types"
     id = db.Column(db.Integer, primary_key=True, nullable=False, autoincrement=True)
     name = db.Column(db.String(250), nullable=False)
-    Manage_classify_id = db.Column(db.Integer, db.ForeignKey(InspectManageClassify.__tablename__ + '.id'))
-    Manage_classify = db.relationship('InspectManageClassify')
+    manage_classify_id = db.Column(db.Integer, db.ForeignKey(InspectManageClassify.__tablename__ + '.id'))
+    manage_classify = db.relationship('InspectManageClassify')
     describe = db.Column(db.String(250), nullable=True)
 
-    def __init__(self, name, Manage_classify_id, describe=None):
+    def __init__(self, name, manage_classify_id, describe=None):
         self.name = name
-        self.Manage_classify_id = Manage_classify_id
+        self.manage_classify_id = manage_classify_id
         self.describe = describe
 
 
@@ -37,28 +37,28 @@ class InspectManageDemands(db.Model):
     id = db.Column(db.Integer, primary_key=True, nullable=False, autoincrement=True)
     name = db.Column(db.String(250), nullable=False)
     level = db.Column(db.Integer, nullable=False)  # level: 1-5
-    Manage_type_id = db.Column(db.Integer, db.ForeignKey(InspectManageTypes.__tablename__ + '.id'))
-    Manage_type = db.relationship('InspectManageTypes')
+    manage_type_id = db.Column(db.Integer, db.ForeignKey(InspectManageTypes.__tablename__ + '.id'))
+    manage_type = db.relationship('InspectManageTypes')
     describe = db.Column(db.String(250), nullable=True)
 
-    def __init__(self, name, level, Manage_type_id, describe=None):
+    def __init__(self, name, level, manage_type_id, describe=None):
         self.name = name
         self.level = level
-        self.Manage_type_id = Manage_type_id
+        self.manage_type_id = manage_type_id
         self.describe = describe
 
     @staticmethod
-    def gen_Manage_demands_assess(system_level):
-        Manage_assess = {}
-        for Manage_demand in db.session.query(InspectManageDemands).filter(InspectManageDemands.level == system_level).all():
-            classify_name = Manage_demand.Manage_type.Manage_classify.name
-            Manage_type_name = Manage_demand.Manage_type.name
-            if not Manage_assess.get(classify_name):
-                Manage_assess[classify_name] = {}
-            if not Manage_assess[classify_name].get(Manage_type_name):
-                Manage_assess[classify_name][Manage_type_name] = {}
-            Manage_assess[classify_name][Manage_type_name][Manage_demand.name] = False
-        return Manage_assess
+    def gen_manage_demands_assess(system_level):
+        manage_assess = {}
+        for manage_demand in db.session.query(InspectManageDemands).filter(InspectManageDemands.level == system_level).all():
+            classify_name = manage_demand.manage_type.manage_classify.name
+            manage_type_name = manage_demand.manage_type.name
+            if not manage_assess.get(classify_name):
+                manage_assess[classify_name] = {}
+            if not manage_assess[classify_name].get(manage_type_name):
+                manage_assess[classify_name][manage_type_name] = {}
+                manage_assess[classify_name][manage_type_name][manage_demand.name] = False
+        return manage_assess
 
 
 class InspectManageAssess(db.Model):
@@ -66,27 +66,29 @@ class InspectManageAssess(db.Model):
     __tablename__ = "inspect_Manage_assess"
     id = db.Column(db.Integer, primary_key=True, nullable=False, autoincrement=True)
     system_id = db.Column(db.Integer, db.ForeignKey(InspectSystems.__tablename__ + '.id'))
-    Manage_assess_system = db.relationship('InspectSystems')
-    Manage_demand_id = db.Column(db.Integer, db.ForeignKey(InspectManageDemands.__tablename__ + '.id'))
-    Manage_demand = db.relationship('InspectManageDemands')
-    Manage_demand_check = db.Column(db.Boolean, default=False)
+    manage_assess_system = db.relationship('InspectSystems')
+    manage_demand_id = db.Column(db.Integer, db.ForeignKey(InspectManageDemands.__tablename__ + '.id'))
+    manage_demand = db.relationship('InspectManageDemands')
+    manage_demand_check = db.Column(db.Boolean, default=False)
 
-    def __init__(self, system_id, Manage_demand_id, Manage_demand_check=False):
+    def __init__(self, system_id, manage_demand_id, manage_demand_check=False):
 
         self.system_id = system_id
-        self.Manage_demand_id = Manage_demand_id
-        self.Manage_demand_check = Manage_demand_check
+        self.manage_demand_id = manage_demand_id
+        self.manage_demand_check = manage_demand_check
 
     def _to_dict(self):
-        Manage_assess = {
-            self.Manage_demand.Manage_type.Manage_classify.name: {
-                self.Manage_demand.Manage_type.name: {
-                    self.Manage_demand.name: self.Manage_demand_check
-                }
-            }
-        }
+        # Manage_assess = {
+        #     self.Manage_demand.Manage_type.Manage_classify.name: {
+        #         self.Manage_demand.Manage_type.name: {
+        #             self.Manage_demand.name: self.Manage_demand_check
+        #         }
+        #     }
+        # }
         # Manage_assess_dict = {
         #     "system_id": self.system_id,
         #     "Manage_assess": Manage_assess
         # }
-        return Manage_assess
+        return {
+                    self.manage_demand.name: self.manage_demand_check
+                }
