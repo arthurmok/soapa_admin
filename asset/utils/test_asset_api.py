@@ -106,10 +106,10 @@ def test_asset_uploads():
 
 if __name__ == '__main__':
     # test_asset_post()
-    # test_asset_get()
+    test_asset_get()
     # test_asset_type_get()
     # test_asset_agent_type_get()
     # test_asset_get_by_id()
     # test_asset_update()
     # test_asset_delete()
-    test_asset_uploads()
+    # test_asset_uploads()

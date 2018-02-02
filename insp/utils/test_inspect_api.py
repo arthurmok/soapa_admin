@@ -20,14 +20,21 @@ header = {
 }
 
 
+def test_inspect_system_get():
+    url = "http://127.0.0.1:8092/insp/api/v1.0/systems"
+    resp = requests.get(url)
+    print json.dumps(resp.json())
+
+
 def test_inspect_system_post():
     data = dict(
-        system_name="等保系统测试",
-        system_no="Ksegeuiree",
-        describe="testeweset"
+        system_name="等保系统测试1",
+        system_no="Ksegeuiree1",
+        system_data_json=json.dumps({"system_name":"等保系统测试1"}),
+        describe="testeweset1"
     )
     json_data = json.dumps(data)
-    file_name = os.path.join(D_UP_LOADS, "资产管理示例.xlsx")
+    file_name = os.path.join(D_UP_LOADS, "资产管理子系统.docx")
     files = {'file': open(file_name, 'rb')}
     print json_data
     url = "http://127.0.0.1:8092/insp/api/v1.0/systems"
@@ -44,48 +51,34 @@ def test_get_system_assess():
 def test_post_system_assess():
     url = "http://127.0.0.1:8092/insp/api/v1.0/systems/assess/1"
     data_dict = {
-
         "business_assess": {
-            "country": {
-                "serious": False,
-                "sspecial": False,
-                "normal": True
-            },
-            "social": {
-                "serious": False,
-                "sspecial": False,
-                "normal": True
-            },
-            "citizen": {
-                "serious": False,
-                "sspecial": False,
-                "normal": True
-            }
+            "social_normal": False,
+            "social_special": False,
+            "country_specail": True,
+            "citizen_serious": False,
+            "citizen_normal": False,
+            "social_serious": True,
+            "country_normal": False,
+            "citizen_special": True,
+            "country_serious": False
         },
-        "system_assess": {
-            "country": {
-                "serious": True,
-                "sspecial": False,
-                "normal": False
-            },
-            "social": {
-                "serious": True,
-                "sspecial": False,
-                "normal": False
-            },
-            "citizen": {
-                "serious": True,
-                "sspecial": False,
-                "normal": False
-            }
-        },
-        "system_id": 1,
 
-        "status": True
+        "system_id": 1,
+        "system_assess": {
+            "social_normal": True,
+            "social_special": False,
+            "country_specail": False,
+            "citizen_serious": True,
+            "citizen_normal": False,
+            "social_serious": False,
+            "country_normal": True,
+            "citizen_special": False,
+            "country_serious": False
+        }
     }
-    print json.dumps(data_dict)
-    # resp = requests.post(url, json=json.dumps(data_dict), headers=header)
-    # print json.dumps(resp.json())
+    # print json.dumps(data_dict)
+    resp = requests.post(url, json=json.dumps(data_dict), headers=header)
+    print json.dumps(resp.json())
 
 
 def test_post_demands():
@@ -464,6 +457,7 @@ def test_post_manage_assess():
 
 
 if __name__ == '__main__':
+    test_inspect_system_get()
     # test_inspect_system_post()
     # test_get_system_assess()
     # test_post_system_assess()
@@ -473,4 +467,4 @@ if __name__ == '__main__':
     # test_get_tech_assess()
     # test_post_tech_assess()
     # test_get_manage_assess()
-    test_post_manage_assess()
+    # test_post_manage_assess()

@@ -1,21 +1,51 @@
 # --*-- coding: utf-8 --*--
 import json
 import os
+import sys
+
+from common.pagenate import get_page_items
+
+reload(sys)
+sys.setdefaultencoding('utf-8')
 import random
 from datetime import datetime
 from werkzeug.utils import secure_filename
-from flask import request, jsonify
-from flask_restful import Resource
+from flask import request, jsonify, send_file
+from flask_restful import Resource, abort
 from sqlalchemy.sql import func
 from insp import db, logger, api
 from insp.models.inspect_model import InspectSystems, InspectSystemsAssess, InspectAssessType, \
-    InspectObject, InspectInjureLevel, InspectObjectLevelRela, InspectTechAssess, InspectTechDemands
+    InspectObject, InspectInjureLevel, InspectObjectLevelRela, InspectTechAssess, InspectTechDemands, \
+    InspectObjectInjureLevel
 from config import D_UP_LOADS
+
+
+class InspectSystemDownloadApi(Resource):
+    def get(self, system_id):
+        inspect_system = db.session.query(InspectSystems).filter(InspectSystems.id == system_id).first()
+        file_name = inspect_system.system_word
+        if os.path.exists(file_name):
+            ext_name = file_name.split('.')[1]
+            system_name = inspect_system.system_name
+            return send_file(file_name, mimetype="application/msword", as_attachment=True,
+                             attachment_filename=system_name + '_' + inspect_system.system_no+ext_name)
+        else:
+            abort(404)
 
 
 class InspectSystemApi(Resource):
     def get(self):
-        pass
+        try:
+            page, per_page, offset, search_msg = get_page_items()
+            query = db.session.query(InspectSystems)
+            inspect_systems = query.limit(per_page).offset(offset).all()
+            total = query.count()
+            inspect_systems_list = [inspect_system._to_dict() for inspect_system in inspect_systems]
+        except Exception, e:
+            logger.error(e)
+            return jsonify({"status": False, "desc": "获取等保系统信息失败"})
+        return jsonify({"status": True,  "page": page, "per_page": per_page,
+                        "total": total, "inspect_systems": inspect_systems_list})
 
     def post(self):
         try:
@@ -23,6 +53,7 @@ class InspectSystemApi(Resource):
             sys_dict = dict(
                 system_name=request.values.get('system_name'),
                 system_no=request.values.get('system_no'),
+                system_data_json = request.values.get('system_data_json'),
                 describe=request.values.get('describe')
             )
             # sys_dict = json.loads(sys_json)
@@ -48,31 +79,35 @@ class InspectSystemApi(Resource):
 
 
 class InspectSystemsAssessApi(Resource):
+
     def get(self, system_id):
         try:
-            system_assess_dict = {'system_id': system_id}
-            for assess_type in db.session.query(InspectAssessType).all():
-                system_assess_dict[assess_type.name] = {}
-                for assess_object in db.session.query(InspectObject).all():
-                    system_assess_dict[assess_type.name][assess_object.name] = {}
-                    for level in db.session.query(InspectInjureLevel).all():
-                        system_assess_dict[assess_type.name][assess_object.name][level.name] = False
-            a = json.dumps(system_assess_dict)
-            system_assess = db.session.query(InspectSystemsAssess).filter(InspectSystemsAssess.system_id == system_id).all()
+            system_assess_dict = {
+                'system_id': system_id,
+                'business_assess': {},
+                'system_assess': {}
+            }
+            # object_levels = db.session.query(InspectObjectInjureLevel).all()
+            # for object_level in object_levels:
+            #     system_assess_dict['business_assess'][object_level.name] = False
+            #     system_assess_dict['system_assess'][object_level.name] = False
+            system_assess = db.session.query(InspectSystemsAssess).filter(
+                InspectSystemsAssess.system_id == system_id).all()
             for assess in system_assess:
-                assess_dict = assess._to_dict()
-                system_assess_dict[assess_dict['assess_type']][assess_dict['assess']['object_name']][assess_dict['assess']['level_name']] = True
+                system_assess_dict[assess.assess_type.name][assess.object_injure_level.name] \
+                    = assess.assess_check
             b = json.dumps(system_assess_dict)
         except Exception, e:
             logger.error(e)
             return jsonify({"status": False, "desc": "获取安全保护等级自评信息失败"})
-        return jsonify({"status": True, "assess": system_assess_dict})
+        system_assess_dict['status'] = True
+        return jsonify(system_assess_dict)
 
     def post(self, system_id):
         try:
             max_business_level = 0
             max_system_level = 0
-            insp_system = db.session.query(InspectSystems).filter(InspectSystems.id == system_id).first()
+            inspect_system = db.session.query(InspectSystems).filter(InspectSystems.id == system_id).first()
             data_json = request.get_json()
             data_dict = json.loads(data_json)
             business_dict = data_dict.get('business_assess')
@@ -82,23 +117,20 @@ class InspectSystemsAssessApi(Resource):
                                                               InspectSystemsAssess.assess_type_id ==
                                                               assess_type_id).delete()
                 db.session.commit()
-                for object_name in business_dict:
-                    object_id = InspectObject._get_id(object_name)
-                    level_dict = business_dict.get(object_name)
-                    for level in level_dict:
-                        if level_dict.get(level):
-                            level_id = InspectInjureLevel._get_id(level)
-                            object_level_rela_id = InspectObjectLevelRela._get_id(object_id, level_id)
-                            system_assess = InspectSystemsAssess(system_id, assess_type_id, object_level_rela_id)
-                            db.session.add(system_assess)
-                            db.session.commit()
+                for object_level_name in business_dict:
+                    assess_check = business_dict.get(object_level_name)
+                    object_level_id, level = InspectObjectInjureLevel._get_id(object_level_name)
+                    if not object_level_id:
+                        return jsonify({"status": False, "desc": "错误的%s导致安全保护等级自评信息提交失败" % object_level_name})
+                    system_assess = InspectSystemsAssess(system_id, assess_type_id, object_level_id, assess_check)
+                    db.session.add(system_assess)
+                    db.session.commit()
+                    if max_business_level < level:
+                        max_business_level = level
+
                 # update business_level
-                max_business_level = db.session.query(func.max(InspectObjectLevelRela.level)).join\
-                    (InspectSystemsAssess, InspectObjectLevelRela.id == InspectSystemsAssess.object_level_rela_id
-                     ).filter(InspectSystemsAssess.system_id == system_id, InspectSystemsAssess.assess_type_id
-                              == assess_type_id).first()[0]
-                insp_system.business_level = max_business_level
-                db.session.add(insp_system)
+                inspect_system.business_level = max_business_level
+                db.session.add(inspect_system)
                 db.session.commit()
 
             system_dict = data_dict.get('system_assess')
@@ -108,30 +140,24 @@ class InspectSystemsAssessApi(Resource):
                                                               InspectSystemsAssess.assess_type_id ==
                                                               assess_type_id).delete()
                 db.session.commit()
-                for object_name in system_dict:
-                    object_id = InspectObject._get_id(object_name)
-                    level_dict = system_dict.get(object_name)
-                    for level in level_dict:
-                        if level_dict.get(level):
-                            level_id = InspectInjureLevel._get_id(level)
-                            object_level_rela_id = InspectObjectLevelRela._get_id(object_id, level_id)
-                            system_assess = InspectSystemsAssess(system_id, assess_type_id, object_level_rela_id)
-                            db.session.add(system_assess)
-                            db.session.commit()
-
+                for object_level_name in system_dict:
+                    assess_check = system_dict.get(object_level_name)
+                    object_level_id, level = InspectObjectInjureLevel._get_id(object_level_name)
+                    if not object_level_id:
+                        return jsonify({"status": False, "desc": "错误的%s导致安全保护等级自评信息提交失败" % object_level_name})
+                    system_assess = InspectSystemsAssess(system_id, assess_type_id, object_level_id, assess_check)
+                    db.session.add(system_assess)
+                    db.session.commit()
+                    if max_system_level < level:
+                        max_system_level = level
 
                 #  update system_level
-                max_system_level = db.session.query(func.max(InspectObjectLevelRela.level)).join \
-                    (InspectSystemsAssess, InspectObjectLevelRela.id == InspectSystemsAssess.object_level_rela_id
-                     ).filter(InspectSystemsAssess.system_id == system_id,
-                              InspectSystemsAssess.assess_type_id
-                              == assess_type_id).first()[0]
-                insp_system.system_level = max_system_level
-                db.session.add(insp_system)
+                inspect_system.system_level = max_system_level
+                db.session.add(inspect_system)
                 db.session.commit()
             # update security_level
-            insp_system.security_level = max(max_business_level, max_system_level)
-            db.session.add(insp_system)
+            inspect_system.security_level = max(max_business_level, max_system_level)
+            db.session.add(inspect_system)
             db.session.commit()
         except Exception, e:
             logger.error(e)
@@ -183,6 +209,8 @@ class InspectTechAssessApi(Resource):
         return jsonify({"status": True, "desc": "安全保护等级技术细则自评成功"})
 
 
+api.add_resource(InspectSystemDownloadApi, '/insp/api/v1.0/systems/download/<int:system_id>',
+                 endpoint='inspect_system_download')
 api.add_resource(InspectSystemApi, '/insp/api/v1.0/systems', endpoint='inspect_system')
 api.add_resource(InspectSystemsAssessApi, '/insp/api/v1.0/systems/assess/<int:system_id>',
                  endpoint='inspect_system_assess')

@@ -1,5 +1,9 @@
 # --*-- coding: utf-8 --*--
+import json
 from datetime import datetime
+
+from flask import url_for
+from sqlalchemy.dialects.mysql import MEDIUMTEXT
 from insp import db
 
 
@@ -8,6 +12,7 @@ class InspectSystems(db.Model):
     id = db.Column(db.Integer, primary_key=True, nullable=False, autoincrement=True)
     system_name = db.Column(db.String(50), nullable=False)  # 系统名称
     system_no = db.Column(db.String(50), nullable=False)  # 系统编号
+    system_data_json = db.Column(MEDIUMTEXT, nullable=True)  # 系统infomation
     system_word = db.Column(db.String(250), nullable=True)  # word文档路径
     business_level = db.Column(db.Integer, default=0)
     system_level = db.Column(db.Integer, default=0)
@@ -15,21 +20,25 @@ class InspectSystems(db.Model):
     describe = db.Column(db.String(250), nullable=True)
     update_time = db.Column(db.DateTime)
 
-    def __init__(self, system_name, system_no, system_word, describe=None, update_time=datetime.now()):
+    def __init__(self, system_name, system_no, system_data_json, system_word, describe=None, update_time=datetime.now()):
         self.system_name = system_name
         self.system_no = system_no
+        self.system_data_json = system_data_json
         self.system_word = system_word
         self.describe = describe
         self.update_time = update_time
 
     def _to_dict(self):
         sys_dict = {col.name: getattr(self, col.name, None) for col in self.__table__.columns}
+        sys_dict['system_data_json'] = json.loads(sys_dict.get('system_data_json')) if sys_dict.get('system_data_json') else {}
+        sys_dict['system_word'] = '/insp/api/v1.0/systems/download/%d' % self.id
         return sys_dict
 
     @staticmethod
     def _from_dict(sys_dict):
         return InspectSystems(system_name=sys_dict.get('system_name'),
                               system_no=sys_dict.get('system_no'),
+                              system_data_json=sys_dict.get('system_data_json') if sys_dict.get('system_data_json') else json.dumps({}),
                               system_word=sys_dict.get('system_word'),
                               describe=sys_dict.get('describe'),
                               update_time=sys_dict.get('update_time')
@@ -56,6 +65,33 @@ class InspectAssessType(db.Model):
     def _get_id(type_name):
         assess_type = db.session.query(InspectAssessType).filter(InspectAssessType.name == type_name).first()
         return assess_type.id
+
+
+class InspectObjectInjureLevel(db.Model):
+    __tablename__ = "inspect_object_injure_level"
+    id = db.Column(db.Integer, primary_key=True, nullable=False, autoincrement=True)
+    name = db.Column(db.String(50), nullable=False)
+    object_name = db.Column(db.String(150), nullable=False)
+    injure_level = db.Column(db.String(50), nullable=False)
+    level_name = db.Column(db.String(50), nullable=True)
+    level = db.Column(db.Integer, nullable=True)
+    describe = db.Column(db.String(250), nullable=True)
+
+    def __init__(self, name, object_name, injure_level, level_name, level, describe=None):
+        self.name = name
+        self.object_name = object_name
+        self.injure_level = injure_level
+        self.level_name = level_name
+        self.level = level
+        self.describe = describe
+
+    @staticmethod
+    def _get_id(name):
+        object_level = db.session.query(InspectObjectInjureLevel).filter(InspectObjectInjureLevel.name == name).first()
+        if object_level:
+            return object_level.id, object_level.level
+        else:
+            return None, None
 
 
 class InspectObject(db.Model):
@@ -126,19 +162,23 @@ class InspectSystemsAssess(db.Model):
     id = db.Column(db.Integer, primary_key=True, nullable=False, autoincrement=True)
     system_id = db.Column(db.Integer, db.ForeignKey(InspectSystems.__tablename__+'.id'))
     assess_system = db.relationship('InspectSystems')
-    assess_type_id = db.Column(db.Integer, nullable=False)
-    object_level_rela_id = db.Column(db.Integer, db.ForeignKey(InspectObjectLevelRela.__tablename__+'.id'))
-    object_level_rela = db.relationship('InspectObjectLevelRela')
+    assess_type_id = db.Column(db.Integer, db.ForeignKey(InspectAssessType.__tablename__+'.id'))
+    assess_type = db.relationship('InspectAssessType')
+    object_injure_level_id = db.Column(db.Integer, db.ForeignKey(InspectObjectInjureLevel.__tablename__+'.id'))
+    object_injure_level = db.relationship('InspectObjectInjureLevel')
+    assess_check = db.Column(db.Boolean, default=False)
 
-    def __init__(self, system_id, assess_type_id, object_level_rela_id):
+    def __init__(self, system_id, assess_type_id, object_injure_level_id, assess_check):
         self.system_id = system_id
         self.assess_type_id = assess_type_id
-        self.object_level_rela_id = object_level_rela_id
+        self.object_injure_level_id = object_injure_level_id
+        self.assess_check = assess_check
 
     def _to_dict(self):
-        return {'assess_type': InspectAssessType._get_name(self.assess_type_id),
-                           'assess': self.object_level_rela._to_dict()
-                           }
+        return {
+            'assess_type': self.assess_type.name,
+            self.object_injure_level.name: self.assess_check
+        }
 
 
 class InspectTechClassify(db.Model):
