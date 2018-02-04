@@ -8,7 +8,7 @@ class AssetType(db.Model, object):
     __tablename__ = 'asset_type'
     id = db.Column(db.Integer, primary_key=True, nullable=False, autoincrement=True)
     name = db.Column(db.String(50), nullable=False)  # 资产类别
-    type_assets = db.relationship('AssetAssets', backref='asset_type')
+    # type_assets = db.relationship('AssetAssets', backref='asset_type')
     describe = db.Column(db.String(250), nullable=True)
 
     def __init__(self, name, describe=None):
@@ -29,7 +29,7 @@ class AssetAgentType(db.Model):
     __tablename__ = 'asset_agent_type'
     id = db.Column(db.Integer, primary_key=True, nullable=False, autoincrement=True)
     name = db.Column(db.String(32), nullable=False)  # Agent/SYSlog/其他
-    agent_type_assets = db.relationship('AssetAssets', backref='asset_agent_type')
+    # agent_type_assets = db.relationship('AssetAssets', backref='asset_agent_type')
     describe = db.Column(db.String(100), nullable=True)
 
     def __init__(self, name, describe=None):
@@ -55,11 +55,13 @@ class AssetAssets(db.Model):
     owner = db.Column(db.String(50), nullable=False)  # 责任人
     owner_contact = db.Column(db.String(250), nullable=False)  # 责任人联系方式
     type_id = db.Column(db.Integer, db.ForeignKey(AssetType.__tablename__ + '.id'))
+    asset_type = db.relationship('AssetType')
     ip = db.Column(db.String(50), nullable=False)  #
     port = db.Column(db.Integer, nullable=True)  # 资产类型为应用系统，必填;如果为其他，选填
     network = db.Column(db.String(50), nullable=True)  # 所属网络
     manufacturer = db.Column(db.String(50), nullable=True)  # 制造商
     agent_type_id = db.Column(db.Integer, db.ForeignKey(AssetAgentType.__tablename__ + '.id'))  #
+    agent_type = db.relationship('AssetAgentType')
     describe = db.Column(db.String(250), nullable=True)  # 备注
     alarm_count = db.Column(db.Integer, default=0)  # 告警信息
     create_time = db.Column(db.DateTime, nullable=False, default=datetime.now())
@@ -81,6 +83,10 @@ class AssetAssets(db.Model):
 
     def _to_dict(self):
         asset_dict = {col.name: getattr(self, col.name, None) for col in self.__table__.columns}
+        asset_type_dict = self.asset_type._to_dict()
+        asset_dict['asset_type_name'] = asset_type_dict.get('name')
+        asset_agent_type_dict = self.agent_type._to_dict()
+        asset_dict['asset_agent_type_name'] = asset_agent_type_dict.get('name')
         return asset_dict
 
     @staticmethod

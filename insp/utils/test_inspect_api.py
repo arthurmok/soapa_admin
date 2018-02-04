@@ -20,25 +20,48 @@ header = {
 }
 
 
-def test_inspect_system_get():
+def test_inspect_system_get(id=None):
+
     url = "http://127.0.0.1:8092/insp/api/v1.0/systems"
+    if id:
+        url = "http://127.0.0.1:8092/insp/api/v1.0/systems/%s" % str(id)
     resp = requests.get(url)
     print json.dumps(resp.json())
 
 
 def test_inspect_system_post():
     data = dict(
-        system_name="等保系统测试1",
-        system_no="Ksegeuiree1",
-        system_data_json=json.dumps({"system_name":"等保系统测试1"}),
-        describe="testeweset1"
+        system_name="等保系统测试2",
+        system_no="Ksegeuiree2",
+        system_data_json={"system_name":"等保系统测试1"},
+        describe="testeweset2"
     )
     json_data = json.dumps(data)
-    file_name = os.path.join(D_UP_LOADS, "资产管理子系统.docx")
-    files = {'file': open(file_name, 'rb')}
+
     print json_data
     url = "http://127.0.0.1:8092/insp/api/v1.0/systems"
-    resp = requests.post(url, data=data, files=files)
+    resp = requests.post(url, json=data, headers=header)
+    print json.dumps(resp.json())
+
+
+def test_inspect_system_put():
+    data = dict(
+        system_name="等保系统测试2_2",
+        system_no="Ksegeuiree2_2",
+        system_data_json={"system_name2": "等保系统测试2"},
+        describe="testeweset2_2"
+    )
+    json_data = json.dumps(data)
+
+    print json_data
+    url = "http://127.0.0.1:8092/insp/api/v1.0/systems/3"
+    resp = requests.put(url, json=data, headers=header)
+    print json.dumps(resp.json())
+
+
+def test_inspect_system_delete():
+    url = "http://127.0.0.1:8092/insp/api/v1.0/systems/4"
+    resp = requests.delete(url)
     print json.dumps(resp.json())
 
 
@@ -52,14 +75,14 @@ def test_post_system_assess():
     url = "http://127.0.0.1:8092/insp/api/v1.0/systems/assess/1"
     data_dict = {
         "business_assess": {
-            "social_normal": False,
+            "social_normal": True,
             "social_special": False,
-            "country_specail": True,
+            "country_specail": False,
             "citizen_serious": False,
-            "citizen_normal": False,
-            "social_serious": True,
-            "country_normal": False,
-            "citizen_special": True,
+            "citizen_normal": True,
+            "social_serious": False,
+            "country_normal": True,
+            "citizen_special": False,
             "country_serious": False
         },
 
@@ -68,8 +91,8 @@ def test_post_system_assess():
             "social_normal": True,
             "social_special": False,
             "country_specail": False,
-            "citizen_serious": True,
-            "citizen_normal": False,
+            "citizen_serious": False,
+            "citizen_normal": True,
             "social_serious": False,
             "country_normal": True,
             "citizen_special": False,
@@ -77,7 +100,7 @@ def test_post_system_assess():
         }
     }
     # print json.dumps(data_dict)
-    resp = requests.post(url, json=json.dumps(data_dict), headers=header)
+    resp = requests.post(url, json=data_dict, headers=header)
     print json.dumps(resp.json())
 
 
@@ -457,14 +480,16 @@ def test_post_manage_assess():
 
 
 if __name__ == '__main__':
-    test_inspect_system_get()
+    # test_inspect_system_get()
     # test_inspect_system_post()
+    # test_inspect_system_put()
     # test_get_system_assess()
     # test_post_system_assess()
+    # test_inspect_system_delete()
     # test_post_demands()
     # test_post_manage_demands()
     # test_get_manage_demands()
     # test_get_tech_assess()
     # test_post_tech_assess()
     # test_get_manage_assess()
-    # test_post_manage_assess()
+    test_post_manage_assess()

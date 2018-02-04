@@ -17,6 +17,7 @@ from insp import db, logger, api
 from insp.models.inspect_model import InspectSystems, InspectSystemsAssess, InspectAssessType, \
     InspectObject, InspectInjureLevel, InspectObjectLevelRela, InspectTechAssess, InspectTechDemands, \
     InspectObjectInjureLevel
+from insp.models.insp_manage_model import InspectManageAssess
 from config import D_UP_LOADS
 
 
@@ -34,8 +35,11 @@ class InspectSystemDownloadApi(Resource):
 
 
 class InspectSystemApi(Resource):
-    def get(self):
+    def get(self, id=None):
         try:
+            if id:
+                inspect_system = db.session.query(InspectSystems).filter(InspectSystems.id == id).first()
+                return jsonify({"status": True, "inspect_system": inspect_system._to_dict()})
             page, per_page, offset, search_msg = get_page_items()
             query = db.session.query(InspectSystems)
             inspect_systems = query.limit(per_page).offset(offset).all()
@@ -49,33 +53,71 @@ class InspectSystemApi(Resource):
 
     def post(self):
         try:
-            # sys_json = request.get_json()
-            sys_dict = dict(
-                system_name=request.values.get('system_name'),
-                system_no=request.values.get('system_no'),
-                system_data_json = request.values.get('system_data_json'),
-                describe=request.values.get('describe')
-            )
-            # sys_dict = json.loads(sys_json)
-            files = request.files
-            f = files['file']
-            if f:
-                # file_name = secure_filename(f.filename)
-                file_name = f.filename
-                file_name_list = file_name.split('.')
-                word_file_name = file_name_list[0] + datetime.now().strftime('%Y%m%d%H%M%S') + \
-                                 str(random.randint(0, 99)) + '.' + file_name_list[1]
-                word_file_dir = os.path.join(D_UP_LOADS, word_file_name)
-                f.save(word_file_dir)
-                sys_dict['system_word'] = word_file_dir
+            sys_dict = request.get_json()
+            if not sys_dict:
+                sys_dict = dict(
+                    system_name=request.values.get('system_name'),
+                    system_no=request.values.get('system_no'),
+                    system_data_json=request.values.get('system_data_json'),
+                    describe=request.values.get('describe')
+                )
+
+            # files = request.files
+            #
+            # if files and files.get('file'):
+            #     f = files['file']
+            #     # file_name = secure_filename(f.filename)
+            #     file_name = f.filename
+            #     file_name_list = file_name.split('.')
+            #     word_file_name = file_name_list[0] + datetime.now().strftime('%Y%m%d%H%M%S') + \
+            #                      str(random.randint(0, 99)) + '.' + file_name_list[1]
+            #     word_file_dir = os.path.join(D_UP_LOADS, word_file_name)
+            #     f.save(word_file_dir)
+            #     sys_dict['system_word'] = word_file_dir
             sys_dict['update_time'] = datetime.now()
             inspect_system = InspectSystems._from_dict(sys_dict)
             db.session.add(inspect_system)
+            db.session.flush()
+            system_id = inspect_system.id
             db.session.commit()
         except Exception, e:
             logger.error(e)
             return jsonify({"status": False, "desc": "等保系统创建失败"})
-        return jsonify({"status": True, "desc": "等保系统创建成功"})
+        return jsonify({"status": True, "desc": "等保系统创建成功", "system_id":system_id})
+
+    def put(self, id):
+        try:
+            inspect_system = db.session.query(InspectSystems).filter(InspectSystems.id == id).first()
+            if not inspect_system:
+                return jsonify({"status": False, "desc": "无法查询到该系统"})
+            system_dict = request.get_json()
+            inspect_system.system_name = system_dict.get('system_name'),
+            inspect_system.system_no = system_dict.get('system_no'),
+            inspect_system.system_data_json = json.dumps(system_dict.get('system_data_json')) if system_dict.get(
+                'system_data_json') else json.dumps({}),
+            # inspect_system.system_word = system_dict.get('system_word'),
+            inspect_system.describe = system_dict.get('describe'),
+            inspect_system.update_time = datetime.now()
+            db.session.commit()
+        except Exception, e:
+            logger.error(e)
+            return jsonify({"status": False, "desc": "等保自评系统修改失败"})
+        return jsonify({"status": True, "desc": "等保自评系统修改成功"})
+
+    def delete(self, id):
+        try:
+            db.session.query(InspectSystemsAssess).filter(InspectSystemsAssess.system_id == id).delete()
+            db.session.commit()
+            db.session.query(InspectTechAssess).filter(InspectTechAssess.system_id == id).delete()
+            db.session.commit()
+            db.session.query(InspectManageAssess).filter(InspectManageAssess.system_id == id).delete()
+            db.session.commit()
+            db.session.query(InspectSystems).filter(InspectSystems.id == id).delete()
+            db.session.commit()
+        except Exception, e:
+            logger.error(e)
+            return jsonify({"status": False, "desc": "等保自评系统删除失败"})
+        return jsonify({"status": True, "desc": "等保自评系统删除成功"})
 
 
 class InspectSystemsAssessApi(Resource):
@@ -108,8 +150,8 @@ class InspectSystemsAssessApi(Resource):
             max_business_level = 0
             max_system_level = 0
             inspect_system = db.session.query(InspectSystems).filter(InspectSystems.id == system_id).first()
-            data_json = request.get_json()
-            data_dict = json.loads(data_json)
+            data_dict = request.get_json()
+
             business_dict = data_dict.get('business_assess')
             if business_dict:
                 assess_type_id = InspectAssessType._get_id('business_assess')
@@ -125,7 +167,7 @@ class InspectSystemsAssessApi(Resource):
                     system_assess = InspectSystemsAssess(system_id, assess_type_id, object_level_id, assess_check)
                     db.session.add(system_assess)
                     db.session.commit()
-                    if max_business_level < level:
+                    if assess_check and (max_business_level < level):
                         max_business_level = level
 
                 # update business_level
@@ -148,7 +190,7 @@ class InspectSystemsAssessApi(Resource):
                     system_assess = InspectSystemsAssess(system_id, assess_type_id, object_level_id, assess_check)
                     db.session.add(system_assess)
                     db.session.commit()
-                    if max_system_level < level:
+                    if assess_check and (max_system_level < level):
                         max_system_level = level
 
                 #  update system_level
@@ -190,12 +232,13 @@ class InspectTechAssessApi(Resource):
 
     def post(self, system_id):
         try:
-            demands_json = request.get_json()
-            demands_assess_dict = json.loads(demands_json)
+            demands_assess_dict = request.get_json()
+
             inspect_system = db.session.query(InspectSystems).filter(InspectSystems.id == system_id).first()
             if not inspect_system or inspect_system.security_level == 0:
                 return jsonify({"status": False, "desc": "安全保护等级自评尚未完成"})
             db.session.query(InspectTechAssess).filter(InspectTechAssess.system_id == system_id).delete()
+            db.session.commit()
             for tech_demand in db.session.query(InspectTechDemands).filter(
                         InspectTechDemands.level == inspect_system.security_level).all():
                 tech_demand_id = tech_demand.id
@@ -212,6 +255,8 @@ class InspectTechAssessApi(Resource):
 api.add_resource(InspectSystemDownloadApi, '/insp/api/v1.0/systems/download/<int:system_id>',
                  endpoint='inspect_system_download')
 api.add_resource(InspectSystemApi, '/insp/api/v1.0/systems', endpoint='inspect_system')
+api.add_resource(InspectSystemApi, '/insp/api/v1.0/systems/<int:id>', methods=["DELETE", "PUT", "GET"],
+                 endpoint='inspect_system_update')
 api.add_resource(InspectSystemsAssessApi, '/insp/api/v1.0/systems/assess/<int:system_id>',
                  endpoint='inspect_system_assess')
 api.add_resource(InspectTechAssessApi, '/insp/api/v1.0/tech/assess/<int:system_id>', endpoint='inspect_tech_assess')

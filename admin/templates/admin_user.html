@@ -38,8 +38,8 @@
                             <th>电话</th>
                             <th>KEY</th>
                             <th style="display: none">公司</th>
-                            <th style="display: none">部门</th>
-                            <th >角色</th>
+                            <th >部门</th>
+                            <th style="display: none">角色</th>
                              <th >激活</th>
                             <th>用户组</th>
                             <th></th>
@@ -54,8 +54,8 @@
                                 <td>{{ user.mobile }}</td>
                                 <td>{{ user.scan_key }}</td>
                                 <td style="display: none">{{ user.company }}</td>
-                                <td style="display: none">{{ user.department }}</td>
-                                <td>{{ user.rid }}</td>
+                                <td >{{ user.department }}</td>
+                                <td style="display: none">{{ user.rid }}</td>
                                 <td>{% if user.status==1 %}是{% else %}否
                                     {% endif %}
                                 </td>
@@ -342,18 +342,18 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="space-2"></div>
-                                <div class="form-group">
-                                    <label class="control-label col-xs-12 col-sm-3 no-padding-right" for="modal-form-userDepartment">角色：</label>
-                                    <div class="col-xs-12 col-sm-9">
-                                        <div class="clearfix">
-                                            <select   id="modal-form-userRole" name="user_role" class="form-control">
-                                                {{ macro_roles() }}
-                                            </select>
-
-                                        </div>
-                                    </div>
-                                </div>
+{#                                <div class="space-2"></div>#}
+{#                                <div class="form-group">#}
+{#                                    <label class="control-label col-xs-12 col-sm-3 no-padding-right" for="modal-form-userDepartment">角色：</label>#}
+{#                                    <div class="col-xs-12 col-sm-9">#}
+{#                                        <div class="clearfix">#}
+{#                                            <select   id="modal-form-userRole" name="user_role" class="form-control">#}
+{#                                                {{ macro_roles() }}#}
+{#                                            </select>#}
+{##}
+{#                                        </div>#}
+{#                                    </div>#}
+{#                                </div>#}
                                 <div class="space-2"></div>
 
 								

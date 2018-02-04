@@ -18,7 +18,7 @@ class User(UserMixin, db.Model):
     mobile = db.Column(db.String(50))
     department = db.Column(db.String(200))
     # company = db.Column(db.String(200))
-    rid = db.Column(db.Integer)
+    # rid = db.Column(db.Integer)
     group_ids = db.Column(db.String(250))
     password = db.Column(db.String(100))
     scan_key = db.Column(db.String(100))
@@ -27,18 +27,39 @@ class User(UserMixin, db.Model):
     status = db.Column(db.Boolean, default=True)
 
     def __init__(self, name, cname=None, email=None, mobile=None, department=None,
-                 rid=None, group_ids=None, password=None, scan_key=None, status=None):
+                 group_ids=None, password=None, scan_key=None, status=None):
         self.name = name
         self.cname = cname
         self.email = email
         self.mobile = mobile
         self.department = department
         # self.company = company
-        self.rid = rid
+        # self.rid = rid
         self.group_ids = group_ids
         self.password = password
         self.scan_key = scan_key
         self.status = status
+
+    def _to_dict(self):
+        return dict(name=self.name,
+                    cname=self.cname,
+                    email=self.email,
+                    mobile=self.mobile,
+                    department=self.department,
+                    group_ids=self.group_ids,
+                    status=self.status
+                    )
+
+    @staticmethod
+    def _from_dict(user_dict):
+        return User(name=user_dict.get('name'),
+                    cname=user_dict.get('cname'),
+                    email=user_dict.get('email'),
+                    mobile=user_dict.get('mobile'),
+                    department=user_dict.get('department'),
+                    group_ids=user_dict.get('group_ids'),
+                    status=user_dict.get('status')
+                    )
 
     def gen_password_hash(self, password):
         return generate_password_hash(password)
@@ -86,6 +107,11 @@ class Role(db.Model):
         self.name = name
         self.cname = cname
 
+    @staticmethod
+    def _get_name(role_id):
+        role = db.session.query(Role).filter(Role.id == role_id).first()
+        return role.cname
+
 
 class Group(db.Model):
     __tablename__ = 'user_group'
@@ -100,6 +126,17 @@ class Group(db.Model):
         self.cname = cname
         self.selectors = selectors
 
+    def _to_dict(self):
+        return {col.name: getattr(self, col.name, None) for col in self.__table__.columns}
+
+    @staticmethod
+    def _from_dict(group_dict):
+        return Group(
+            name=group_dict.get('name'),
+            cname=group_dict.get('cname'),
+            selectors=group_dict.get('selectors')
+        )
+
 
 class Selector(db.Model):
     __tablename__ = 'user_selector'
@@ -113,6 +150,16 @@ class Selector(db.Model):
         self.name = name
         self.cname = cname
         self.kind = kind
+
+    def _to_dict(self):
+        return {col.name: getattr(self, col.name, None) for col in self.__table__.columns}
+
+    @staticmethod
+    def _from_dict(selector_dict):
+        return Selector(name=selector_dict.get('name'),
+                        cname=selector_dict.get('cname'),
+                        kind=selector_dict.get('kind')
+                        )
 
 
 class TokenMapping(db.Model):

@@ -61,8 +61,7 @@ class AssetsListApi(Resource):
 
     def post(self):
         try:
-            data_json = request.get_json()
-            asset_dict = json.loads(data_json)
+            asset_dict = request.get_json()
             asset = AssetAssets._from_dict(asset_dict)
 
             db.session.add(asset)
@@ -89,8 +88,7 @@ class AssetsApi(Resource):
             asset = db.session.query(AssetAssets).filter(AssetAssets.id == id).first()
             if not asset:
                 return jsonify({"status": False, "desc": "无法查询到该资产"})
-            data_json = request.get_json()
-            asset_dict = json.loads(data_json)
+            asset_dict = request.get_json()
             asset.serial_no = asset_dict.get('serial_no')
             asset.name = asset_dict.get('name')
             asset.location = asset_dict.get('location')

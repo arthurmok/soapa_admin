@@ -27,6 +27,7 @@ class InspectManageAssessApi(Resource):
 
                 manage_assess_dict['manage_assess'][demand_assess.manage_demand.name] = demand_assess.manage_demand_check
             # b = json.dumps(manage_assess_dict)
+            # print b
         except Exception, e:
             logger.error(e)
             return jsonify({"status": False, "desc": "获取安全保护等级技术细则自评信息失败"})
@@ -35,12 +36,18 @@ class InspectManageAssessApi(Resource):
 
     def post(self, system_id):
         try:
-            demands_json = request.get_json()
-            demands_assess_dict = json.loads(demands_json)
+            demands_assess_dict = request.get_json()
+
             inspect_system = db.session.query(InspectSystems).filter(InspectSystems.id == system_id).first()
             if not inspect_system or inspect_system.security_level == 0:
                 return jsonify({"status": False, "desc": "安全保护等级自评尚未完成"})
             db.session.query(InspectManageAssess).filter(InspectManageAssess.system_id == system_id).delete()
+            db.session.commit()
+            a_list = demands_assess_dict['manage_assess'].keys()
+            b_list =[b.name for b in db.session.query(InspectManageDemands.name).filter(
+                        InspectManageDemands.level == inspect_system.security_level).all()]
+            print (set(a_list)-set(b_list))
+            print (set(b_list) - set(a_list))
             for manage_demand in db.session.query(InspectManageDemands).filter(
                         InspectManageDemands.level == inspect_system.security_level).all():
                 manage_demand_id = manage_demand.id

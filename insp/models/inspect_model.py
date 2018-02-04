@@ -29,16 +29,18 @@ class InspectSystems(db.Model):
         self.update_time = update_time
 
     def _to_dict(self):
+        level_dict = {1: '第一级', 2: '第二级', 3: '第三级', 4: '第四级', 5: '第五级'}
         sys_dict = {col.name: getattr(self, col.name, None) for col in self.__table__.columns}
         sys_dict['system_data_json'] = json.loads(sys_dict.get('system_data_json')) if sys_dict.get('system_data_json') else {}
         sys_dict['system_word'] = '/insp/api/v1.0/systems/download/%d' % self.id
+        sys_dict['security_level_name'] = level_dict.get(int(self.security_level))
         return sys_dict
 
     @staticmethod
     def _from_dict(sys_dict):
         return InspectSystems(system_name=sys_dict.get('system_name'),
                               system_no=sys_dict.get('system_no'),
-                              system_data_json=sys_dict.get('system_data_json') if sys_dict.get('system_data_json') else json.dumps({}),
+                              system_data_json=json.dumps(sys_dict.get('system_data_json')) if sys_dict.get('system_data_json') else json.dumps({}),
                               system_word=sys_dict.get('system_word'),
                               describe=sys_dict.get('describe'),
                               update_time=sys_dict.get('update_time')

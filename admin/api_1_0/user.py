@@ -19,7 +19,7 @@ def create_user(user_id=None):
     password = request.values.get('password')
     repassword = request.values.get('repassword')
     department = request.values.get('department')
-    role_name = request.values.get('user_role')
+    # role_name = request.values.get('user_role')
     status = True if request.values.get('user_status') else False
     groups = request.values.get('groups')
 
@@ -30,7 +30,7 @@ def create_user(user_id=None):
         if password != repassword:
             return jsonify(dict(status=False, desc='两次输入密码不一致'))
         try:
-            user = User(name, cname, email, mobile, department, rid=2, group_ids=groups)
+            user = User(name, cname, email, mobile, department, group_ids=groups)
             db.session.add(user)
             db.session.commit()
             # 设置密码及scan_key
@@ -56,8 +56,8 @@ def create_user(user_id=None):
             user.mobile = mobile
             # user.company = company
             user.department = department
-            role = db.session.query(Role).filter(Role.cname == role_name).first()
-            user.rid = role.id
+            # role = db.session.query(Role).filter(Role.cname == role_name).first()
+            # user.rid = role.id
             user.status = status
             user.group_ids = groups
             db.session.add(user)

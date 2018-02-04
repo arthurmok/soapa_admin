@@ -29,13 +29,20 @@ def user_list():
 def do_login():
     next_url = request.values.get('next', '/')
     remember_me = request.values.get('remember_me', True)
+
     if request.method == 'POST':
-        username = request.values.get('username')
-        password = request.values.get('password')
-        code = request.values.get('auth_code')
-        if session.get('yzk').upper() != code.upper():
-            flash('验证码错误'.decode('utf-8'), 'error')
-            return render_template('login.html')
+        auth_dict = request.get_json()
+        if auth_dict:
+            username = auth_dict.get('username')
+            password = auth_dict.get('password')
+            code = auth_dict.get('auth_code')
+        else:
+            username = request.values.get('username')
+            password = request.values.get('password')
+            code = request.values.get('auth_code')
+        # if session.get('yzk').upper() != code.upper():
+        #     flash('验证码错误'.decode('utf-8'), 'error')
+        #     return render_template('login.html')
         user = db.session.query(User).filter(User.name == username, User.status==True).first()
         if not user:
             flash('用户名或密码错误'.decode('utf-8'), 'error')

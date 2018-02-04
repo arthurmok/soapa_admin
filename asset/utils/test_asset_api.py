@@ -38,7 +38,7 @@ def test_asset_get():
 
 def test_asset_post():
     data = dict(
-        serial_no="HZSP1001",
+        serial_no="HZSP1112",
         name="思科防护墙",
         location="杭州XA分公司",
         owner="王XX",
@@ -66,7 +66,7 @@ def test_asset_get_by_id():
 
 def test_asset_update():
     data = dict(
-        serial_no="HZSP1001",
+        serial_no="HZSP1401",
         name="思科防护墙",
         location="杭州XA分公司",
         owner="王五xx",
@@ -81,8 +81,8 @@ def test_asset_update():
     )
     json_data = json.dumps(data)
     print json_data
-    url = "http://127.0.0.1:8092/asset/api/v1.0/assets/4"
-    resp = requests.put(url, json=json_data)
+    url = "http://127.0.0.1:8092/asset/api/v1.0/assets/12"
+    resp = requests.put(url, json=data)
 
     print json.dumps(resp.json())
 
@@ -105,8 +105,8 @@ def test_asset_uploads():
 
 
 if __name__ == '__main__':
-    # test_asset_post()
-    test_asset_get()
+    test_asset_post()
+    # test_asset_get()
     # test_asset_type_get()
     # test_asset_agent_type_get()
     # test_asset_get_by_id()
