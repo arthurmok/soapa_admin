@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block parent_node %}<a href="{{ url_for('web.index') }}">Home</a>{% endblock %}
+{% block parent_node %}<a href="{{ url_for('admin.index') }}">Home</a>{% endblock %}
 {% block current_node %}Error 404{% endblock %}
 
 {% block content %}
@@ -47,7 +47,7 @@
                     Go Back
                 </a>
 
-                <a href="{{ url_for('web.index') }}" class="btn btn-primary">
+                <a href="{{ url_for('admin.index') }}" class="btn btn-primary">
                     <i class="ace-icon fa fa-tachometer"></i>
                     Dashboard
                 </a>
