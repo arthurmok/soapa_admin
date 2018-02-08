@@ -5,6 +5,8 @@ import xlrd
 from flask import request, jsonify
 from flask_restful import Resource
 from flask_login import login_required
+
+from admin.utils.decorater import permission_required
 from asset import api, db, logger
 from asset.models.assets import AssetAssets, AssetType, AssetAgentType
 from common.pagenate import get_page_items
@@ -44,6 +46,7 @@ class AssetsListApi(Resource):
     #                                help='No asset serial_no provided', location='json')
     #     super(AssetsListApi, self).__init__()
     # @login_required
+    # @permission_required('priv_assest_read')
     def get(self):
         try:
             page, per_page, offset, search_msg = get_page_items()

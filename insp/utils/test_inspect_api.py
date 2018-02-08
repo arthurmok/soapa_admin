@@ -491,7 +491,7 @@ def test_inspect_sys_uploads():
 
 
 if __name__ == '__main__':
-    # test_inspect_system_get()
+    test_inspect_system_get()
     # test_inspect_system_post()
     # test_inspect_system_put()
     # test_get_system_assess()
@@ -504,4 +504,4 @@ if __name__ == '__main__':
     # test_post_tech_assess()
     # test_get_manage_assess()
     # test_post_manage_assess()
-    test_inspect_sys_uploads()
+    # test_inspect_sys_uploads()
