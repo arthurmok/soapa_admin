@@ -245,6 +245,9 @@ class InspectTechAssessApi(Resource):
             tech_assess_dict = {
                 'system_id': system_id,
                 'security_level': inspect_system.security_level,
+                'business_level': inspect_system.business_level,
+                'system_level': inspect_system.system_level,
+                'system_name': inspect_system.system_name,
                 'tech_assess': {}
             }
 

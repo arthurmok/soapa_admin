@@ -20,6 +20,7 @@ class InspectManageAssessApi(Resource):
                 'security_level': inspect_system.security_level,
                 'business_level': inspect_system.business_level,
                 'system_level': inspect_system.system_level,
+                'system_name': inspect_system.system_name,
                 'manage_assess': {}
             }
             # for manage_demand in db.session.query(InspectManageDemands).filter(
