@@ -7,6 +7,7 @@ log_an_app = Blueprint('log_an', __name__)
 logger = Logger('log_an_')
 
 from api_1_0 import *
+from utils import syrnc_log_job
 
 
 

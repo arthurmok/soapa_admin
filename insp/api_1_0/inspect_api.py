@@ -33,6 +33,30 @@ class InspectSystemDownloadApi(Resource):
         else:
             abort(404)
 
+    def post(self, system_id):
+        try:
+            inspect_system = db.session.query(InspectSystems).filter(InspectSystems.id == system_id).first()
+            files = request.files
+            if files and files.get('file'):
+                f = files['file']
+                # file_name = secure_filename(f.filename)
+                file_name = f.filename
+                file_name_list = file_name.split('.')
+                word_file_name = file_name_list[0] + datetime.now().strftime('%Y%m%d%H%M%S') + \
+                                 str(random.randint(0, 99)) + '.' + file_name_list[1]
+                word_file_dir = os.path.join(D_UP_LOADS, word_file_name)
+                f.save(word_file_dir)
+                inspect_system.system_word = word_file_dir
+                db.session.add(inspect_system)
+                db.session.commit()
+            else:
+                return jsonify({"status": False, "desc": "无法获取上传的word附件"})
+
+        except Exception, e:
+            logger.error(e)
+            return jsonify({"status": False, "desc": "等保系统word附件上传失败"})
+        return jsonify({"status": True, "desc": "等保系统word附件上传成功"})
+
 
 class InspectSystemApi(Resource):
     def get(self, id=None):
@@ -54,6 +78,8 @@ class InspectSystemApi(Resource):
     def post(self):
         try:
             sys_dict = request.get_json()
+            if sys_dict:
+                system_no = sys_dict.get('system_no')
             if not sys_dict:
                 sys_dict = dict(
                     system_name=request.values.get('system_name'),
@@ -62,6 +88,8 @@ class InspectSystemApi(Resource):
                     describe=request.values.get('describe')
                 )
 
+            if db.session.query(InspectSystems).filter(InspectSystems.system_no == system_no).first():
+                return jsonify({"status": False, "desc": "编号为：%s的等保系统已存在" % system_no})
             # files = request.files
             #
             # if files and files.get('file'):
@@ -253,7 +281,9 @@ class InspectTechAssessApi(Resource):
 
 
 api.add_resource(InspectSystemDownloadApi, '/insp/api/v1.0/systems/download/<int:system_id>',
-                 endpoint='inspect_system_download')
+                 methods=['GET'], endpoint='inspect_system_download')
+api.add_resource(InspectSystemDownloadApi, '/insp/api/v1.0/systems/upload/<int:system_id>',
+                 methods=['POST'], endpoint='inspect_system_upload')
 api.add_resource(InspectSystemApi, '/insp/api/v1.0/systems', endpoint='inspect_system')
 api.add_resource(InspectSystemApi, '/insp/api/v1.0/systems/<int:id>', methods=["DELETE", "PUT", "GET"],
                  endpoint='inspect_system_update')

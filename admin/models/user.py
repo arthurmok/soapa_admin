@@ -41,7 +41,8 @@ class User(UserMixin, db.Model):
         self.status = status
 
     def _to_dict(self):
-        return dict(name=self.name,
+        return dict(id=self.id,
+                    name=self.name,
                     cname=self.cname,
                     email=self.email,
                     mobile=self.mobile,

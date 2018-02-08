@@ -479,6 +479,17 @@ def test_post_manage_assess():
     print json.dumps(resp.json())
 
 
+def test_inspect_sys_uploads():
+    import os
+    from config import D_UP_LOADS
+    file_name = os.path.join(D_UP_LOADS, "资产管理示例.xlsx")
+    # print file_name
+    files = {'file': open(file_name, 'rb')}
+    url = "http://127.0.0.1:8092/insp/api/v1.0/systems/upload/5"
+    resp = requests.post(url, files=files)
+    print json.dumps(resp.json())
+
+
 if __name__ == '__main__':
     # test_inspect_system_get()
     # test_inspect_system_post()
@@ -492,4 +503,5 @@ if __name__ == '__main__':
     # test_get_tech_assess()
     # test_post_tech_assess()
     # test_get_manage_assess()
-    test_post_manage_assess()
+    # test_post_manage_assess()
+    test_inspect_sys_uploads()

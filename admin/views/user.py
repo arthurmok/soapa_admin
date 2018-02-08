@@ -30,20 +30,25 @@ def user_list():
 def api_login():
 
     try:
-        if not session.get('yzk'):
-            return jsonify({"status": False, "desc": "请刷新验证码"})
+        # auth_code = session.get('yzk')
+        # if not auth_code:
+        #     auth_code = request.cookies.get('auth_code')
+        # if not auth_code:
+        #     return jsonify({"status": False, "desc": "请刷新验证码"})
         auth_dict = request.get_json()
 
         if auth_dict:
             username = auth_dict.get('username')
+            if not username:
+                username = auth_dict.get('userName')
             password = auth_dict.get('password')
             code = auth_dict.get('auth_code')
         else:
             username = request.values.get('username')
             password = request.values.get('password')
             code = request.values.get('auth_code')
-        if session.get('yzk').upper() != code.upper():
-            return jsonify({"status": False, "desc": "验证码错误"})
+        # if auth_code.upper() != code.upper():
+        #     return jsonify({"status": False, "desc": "验证码错误"})
         user = db.session.query(User).filter(User.name == username, User.status==True).first()
         if not user:
             return jsonify({"status": False, "desc": "用户名或密码错误"})
