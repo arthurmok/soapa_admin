@@ -6,7 +6,7 @@ from elasticsearch import Elasticsearch
 from config import ES_URL
 
 
-def get_es_data(index, distip_list):
+def get_es_data(index, dstip_list):
     sleep(0.1)
     es = Elasticsearch(ES_URL)
     try:
@@ -17,10 +17,8 @@ def get_es_data(index, distip_list):
                                     "must": [
                                         {
                                             "terms": {
-                                                "hostname": [
-                                                    "ddos.yundun.com",
-                                                    "cloud.yundun.com"
-                                                ]
+                                                # "dstip": dstip_list
+                                                "agent.ip": dstip_list
                                             }
                                         }
                                     ],
@@ -28,7 +26,7 @@ def get_es_data(index, distip_list):
                                     "should": []
                                 }
                             },
-                            "size": 10
+                            "size": 10000
                         },
                         request_timeout=30
                         )
@@ -40,14 +38,16 @@ def get_es_data(index, distip_list):
                                 "bool": {
                                     "must": [
                                         {
-                                            "match_all": {}
+                                            "terms": {
+                                                "dstip": dstip_list
+                                            }
                                         }
                                     ],
                                     "must_not": [],
                                     "should": []
                                 }
                             },
-                            "size": 10
+                            "size": 10000
                         },
                         request_timeout=30
                         )
@@ -56,13 +56,14 @@ def get_es_data(index, distip_list):
 
 def collect_data(run_day, dstip_list=[]):
     index = 'wazuh-alerts-' + run_day
-    res_dict = get_es_data(index)
+    res_dict = get_es_data(index, dstip_list)
     return res_dict['hits']
 
 
 if __name__ == '__main__':
-    yesterday = '2017.11.17'
-    res_list = collect_data(run_day=yesterday)
+    yesterday = '2017.11.13'
+    dstip_list = ['172.25.0.101']
+    res_list = collect_data(run_day=yesterday, dstip_list=dstip_list)
     for log_dict in res_list:
         pass
     print json.dumps(res_list)

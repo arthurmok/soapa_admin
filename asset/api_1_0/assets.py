@@ -2,7 +2,7 @@
 import json
 
 import xlrd
-from flask import request, jsonify
+from flask import request, jsonify, session
 from flask_restful import Resource
 from flask_login import login_required
 
@@ -49,6 +49,8 @@ class AssetsListApi(Resource):
     # @permission_required('priv_assest_read')
     def get(self):
         try:
+            # if 'priv_asset_read' not in session.get('selectors', ()):
+            #     return jsonify({"status": False, "desc": "用户无权限查看"})
             page, per_page, offset, search_msg = get_page_items()
             query = db.session.query(AssetAssets)
             assets = query.limit(per_page).offset(offset).all()
