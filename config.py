@@ -1,6 +1,6 @@
 # coding: utf-8
 import os
-
+from datetime import datetime, timedelta
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 # database
@@ -22,12 +22,25 @@ ES_URL = '114.55.219.41:9200'
 # Scheduler config
 JOBS = [
     {
-        'id': 'createschuler_job',
-        'func': 'log_an.utils.syrnc_log_job:test_job',
+        'id': 'rsync_log_hour_job',
+        'func': 'log_an.utils.rsync_log_job:_rsync_es_data_hour_job',
         'args': None,
         'trigger': 'interval',
-        'seconds': 10
-    }
+        'seconds': 60
+    },
+    {
+        'id': 'createschuler_job',
+        'func': 'log_an.utils.rsync_log_job:_rsync_es_data_job',
+        'args': None,
+        'trigger': 'date',
+        'run_date': datetime.now()+timedelta(seconds=10)
+    },
+    # {
+    #     'id': 'rsync_log_daily_job',
+    #     'func': 'log_an.utils.rsync_log_job:_rsync_es_data_job',
+    #     'args': None,
+    #     'trigger': {'type': 'cron', 'day_of_week': '*', 'month': '*', 'day': '*', 'hour': '*',
+    #                 'minute': '*', 'second': '*/10'}
+    # }
 ]
-
-
+SCHEDULER_API_ENABLED = True

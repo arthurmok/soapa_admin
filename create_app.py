@@ -12,14 +12,18 @@ def create_app():
 
     app.config.from_object('config')
     app.config.setdefault('SQLALCHEMY_TRACK_MODIFICATIONS', True)
+    db.app = app
     db.init_app(app)
-    login_manager.init_app(app)
-    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' and not scheduler.running:
         scheduler.init_app(app)
         scheduler.start()
+    login_manager.init_app(app)
+
     app.register_blueprint(asset_app, url_prefix='/asset')
     app.register_blueprint(admin_app, url_prefix='')
     app.register_blueprint(inspect_app, url_prefix='/insp')
-    app.register_blueprint(inspect_app, url_prefix='/insp')
+    app.register_blueprint(log_an_app, url_prefix='/log')
     # app.register_blueprint(asset_api_blue, url_prefix='/api/v1.0')
+
+
     return app
