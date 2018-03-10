@@ -14,7 +14,7 @@ def create_app():
     app.config.setdefault('SQLALCHEMY_TRACK_MODIFICATIONS', True)
     db.app = app
     db.init_app(app)
-    if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' and not scheduler.running:
+    if not scheduler.running:
         scheduler.init_app(app)
         scheduler.start()
     login_manager.init_app(app)

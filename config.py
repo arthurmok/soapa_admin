@@ -18,7 +18,7 @@ D_UP_LOADS = basedir + os.sep + 'd_up_loads'
 
 SECRET_KEY = 'xgeESX@ghj67g487Gwj8j$^df'
 SESSION_LIFETIME = 1000 * 24 * 60 * 60
-ES_URL = '114.55.219.41:9200'
+ES_URL = '172.25.0.13:9200'
 # Scheduler config
 JOBS = [
     {
