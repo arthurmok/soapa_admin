@@ -40,3 +40,6 @@ def _rsync_es_data_job():
         logger.error(e)
         print e
 
+def _count_assets_alarm():
+    for asset in db.session.query(AssetAssets).all():
+        pass

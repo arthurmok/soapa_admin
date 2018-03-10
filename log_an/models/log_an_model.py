@@ -53,7 +53,7 @@ class LogLogs(db.Model):
 
     def _get_log_detail(self):
         log_detail = dict(
-            source=self.source,
+            srcip=self.srcip,
             full_log=self.full_log,
             city_name=self.city_name,
             country_name=self.country_name
@@ -68,9 +68,10 @@ class LogLogs(db.Model):
         return log_detail
 
     def _to_dict(self):
+
         log_dict = dict(
             log_id=self.log_id,
-            attack_time=self.attack_time,
+            attack_time=str(self.attack_time),
             host=self.host,
             dstip=self.dstip,
             dealing=self.dealing,
