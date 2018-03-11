@@ -37,6 +37,12 @@ def test_get_rule_type():
     print json.dumps(resp.json())
 
 
+def test_del_rule_type():
+    url = "http://127.0.0.1:8092/log_an/api/v1.0/rule/types/1"
+    resp = requests.delete(url)
+    print json.dumps(resp.json())
+
+
 def test_post_rule_file():
     import os
     from config import D_UP_LOADS
@@ -89,8 +95,9 @@ def test_post_log_logs():
 if __name__ == '__main__':
     # test_post_rule_type()
     # test_get_rule_type()
+    test_del_rule_type()
     # test_post_rule_file()
     # test_get_rule_rules()
     # test_get_log_logs()
     # test_get_log_detail()
-    test_post_log_logs()
+    # test_post_log_logs()

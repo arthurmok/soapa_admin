@@ -34,6 +34,18 @@ class LogRuleTypeApi(Resource):
             return jsonify({"status": False, "desc": "规则类型创建失败,检查是否重复创建"})
         return jsonify({"status": True, "desc": "规则类型创建成功"})
 
+    def delete(self, type_id):
+        try:
+            db.session.query(LogRules).filter(LogRules.rule_type_id == type_id).delete()
+            db.session.commit()
+            db.session.query(LogRuleType).filter(LogRuleType.id == type_id).delete()
+            db.session.commit()
+        except Exception, e:
+            db.session.rollback()
+            logger.error(e)
+            return jsonify({"status": False, "desc": "规则类型删除失败"})
+        return jsonify({"status": True, "desc": "规则类型删除成功"})
+
 
 class LogRuleFile(Resource):
     def get(self, rule_type_id):
@@ -156,7 +168,9 @@ class LogLogsApi(Resource):
 
 api.add_resource(LogLogsApi, '/log_an/api/v1.0/log/logs', endpoint='log_logs')
 api.add_resource(LogLogsApi, '/log_an/api/v1.0/log/logs/<string:log_id>', endpoint='log_detail')
-api.add_resource(LogRuleTypeApi, '/log_an/api/v1.0/rule/types', endpoint='rule_types')
+api.add_resource(LogRuleTypeApi, '/log_an/api/v1.0/rule/types', endpoint='rule_types', methods=['GET', 'POST'])
+api.add_resource(LogRuleTypeApi, '/log_an/api/v1.0/rule/types/<int:type_id>',
+                 endpoint='rule_types_del', methods=['DELETE'])
 api.add_resource(LogRuleFile, '/log_an/api/v1.0/rule/types/file/<int:rule_type_id>', endpoint='rule_types_file')
 api.add_resource(LogRulesApi, '/log_an/api/v1.0/rule/rules/<int:rule_type_id>', endpoint='rule_rules')
 
