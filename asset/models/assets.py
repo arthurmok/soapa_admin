@@ -1,7 +1,13 @@
 # --*-- coding: utf-8 --*--
-from datetime import datetime
+from datetime import datetime, timedelta
+
+from sqlalchemy import func
+from werkzeug.contrib.cache import MemcachedCache
 
 from asset import db
+from log_an.models.log_an_model import LogLogs
+
+mem_cache = MemcachedCache(['127.0.0.1:11211'])
 
 
 class AssetType(db.Model, object):
@@ -87,6 +93,7 @@ class AssetAssets(db.Model):
         asset_dict['asset_type_name'] = asset_type_dict.get('name')
         asset_agent_type_dict = self.agent_type._to_dict()
         asset_dict['asset_agent_type_name'] = asset_agent_type_dict.get('name')
+        asset_dict['alarm_count'] = get_asset_alarm_by_cache(self)
         return asset_dict
 
     @staticmethod
@@ -120,3 +127,27 @@ class AssetAssets(db.Model):
                            agent_type_id=agent_type_id, port=port, network=network,
                            manufacturer=manufacturer, describe=describe
                            )
+
+
+def _caculate_alarm(dstip, dstport=None):
+    thirty_days_ago = datetime.now() - timedelta(days=200)
+    if dstport:
+        alarm_count = db.session.query(func.count(LogLogs.log_id)).filter(
+            LogLogs.dstip == dstip, LogLogs.dstport == dstport, LogLogs.level > 8).filter(
+            LogLogs.attack_time > thirty_days_ago).scalar()
+    else:
+        query = db.session.query(func.count(LogLogs.log_id)).filter(
+            LogLogs.dstip == dstip, LogLogs.level > 8).filter(
+            LogLogs.attack_time > thirty_days_ago)
+        # print 11111, query
+        alarm_count = query.scalar()
+        # print alarm_count
+    return alarm_count
+
+
+def get_asset_alarm_by_cache(asset):
+    rv = mem_cache.get(str(asset.id))
+    if rv is None:
+        rv = _caculate_alarm(asset.ip, asset.port)
+        mem_cache.set(str(asset.id), rv, timeout=15 * 60)
+    return rv

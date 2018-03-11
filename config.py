@@ -29,6 +29,13 @@ JOBS = [
         'seconds': 60
     },
     {
+        'id': '_count_assets_alarm',
+        'func': 'log_an.utils.rsync_log_job:_count_assets_alarm',
+        'args': None,
+        'trigger': 'interval',
+        'seconds': 60
+    },
+    {
         'id': 'createschuler_job',
         'func': 'log_an.utils.rsync_log_job:_rsync_es_data_job',
         'args': None,
