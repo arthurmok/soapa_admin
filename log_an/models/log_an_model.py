@@ -97,7 +97,7 @@ class LogRuleType(db.Model):
     def _to_dict(self):
         rule_type_dict = {col.name: getattr(self, col.name, None) for col in self.__table__.columns}
         if rule_type_dict['rule_file']:
-            rule_type_dict['rule_file'] = ''
+            rule_type_dict['rule_file'] = '/log_an/api/v1.0/rule/types/file/%d' % self.id
         return rule_type_dict
 
     @staticmethod
