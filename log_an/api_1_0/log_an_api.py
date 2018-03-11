@@ -130,7 +130,8 @@ class LogLogsApi(Resource):
             page, per_page, offset, search_msg = get_page_items()
             query = db.session.query(LogLogs)
             if search_dict.get('level'):
-                query = query.filter(LogLogs.level == search_dict.get('level'))
+                level_list = [int(level_str) for level_str in search_dict.get('level')]
+                query = query.filter(LogLogs.level.in_(level_list))
             if search_dict.get('dealing'):
                 query = query.filter(LogLogs.dealing == search_dict.get('dealing'))
             if search_dict.get('start_time'):
