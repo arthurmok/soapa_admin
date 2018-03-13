@@ -33,6 +33,7 @@ class InspectManageAssessApi(Resource):
             # print b
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "获取安全保护等级技术细则自评信息失败"})
         manage_assess_dict["status"] = True
         return jsonify(manage_assess_dict)
@@ -60,6 +61,7 @@ class InspectManageAssessApi(Resource):
                 db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "安全保护等级技术细则自评失败"})
         return jsonify({"status": True, "desc": "安全保护等级技术细则自评成功"})
 

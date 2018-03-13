@@ -54,6 +54,7 @@ class InspectSystemDownloadApi(Resource):
 
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "等保系统word附件上传失败"})
         return jsonify({"status": True, "desc": "等保系统word附件上传成功"})
 
@@ -71,6 +72,7 @@ class InspectSystemApi(Resource):
             inspect_systems_list = [inspect_system._to_dict() for inspect_system in inspect_systems]
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "获取等保系统信息失败"})
         return jsonify({"status": True,  "page": page, "per_page": per_page,
                         "total": total, "inspect_systems": inspect_systems_list})
@@ -110,6 +112,7 @@ class InspectSystemApi(Resource):
             db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "等保系统创建失败"})
         return jsonify({"status": True, "desc": "等保系统创建成功", "system_id":system_id})
 
@@ -129,6 +132,7 @@ class InspectSystemApi(Resource):
             db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "等保自评系统修改失败"})
         return jsonify({"status": True, "desc": "等保自评系统修改成功"})
 
@@ -144,6 +148,7 @@ class InspectSystemApi(Resource):
             db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "等保自评系统删除失败"})
         return jsonify({"status": True, "desc": "等保自评系统删除成功"})
 
@@ -169,6 +174,7 @@ class InspectSystemsAssessApi(Resource):
             b = json.dumps(system_assess_dict)
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "获取安全保护等级自评信息失败"})
         system_assess_dict['status'] = True
         return jsonify(system_assess_dict)
@@ -231,6 +237,7 @@ class InspectSystemsAssessApi(Resource):
             db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "安全保护等级自评信息提交失败"})
         return jsonify({"status": True, "desc": "安全保护等级自评信息提交成功"})
 
@@ -257,6 +264,7 @@ class InspectTechAssessApi(Resource):
             # b = json.dumps(tech_assess_dict)
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "获取安全保护等级技术细则自评信息失败"})
         tech_assess_dict["status"] = True
         return jsonify(tech_assess_dict)
@@ -279,6 +287,7 @@ class InspectTechAssessApi(Resource):
                 db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "安全保护等级技术细则自评失败"})
         return jsonify({"status": True, "desc": "安全保护等级技术细则自评成功"})
 
