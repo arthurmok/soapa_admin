@@ -13,6 +13,7 @@ class GroupApi(Resource):
             groups_list = [group._to_dict() for group in groups]
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "获取用户组信息失败"})
         return jsonify({"status": True, "groups": groups_list})
 
@@ -25,6 +26,7 @@ class GroupApi(Resource):
 
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "用户组创建失败"})
         return jsonify({"status": True, "desc": "用户组创建成功"})
 
@@ -43,6 +45,7 @@ class GroupApi(Resource):
             db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "用户组修改失败"})
         return jsonify({"status": True, "desc": "用户组修改成功"})
 
@@ -52,6 +55,7 @@ class GroupApi(Resource):
             db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "用户组修改失败"})
         return jsonify({"status": True, "desc": "用户组修改成功"})
 

@@ -13,6 +13,7 @@ class UserApi(Resource):
             users_list = [user._to_dict() for user in users]
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "获取用户信息失败"})
         return jsonify({"status": True, "users": users_list})
 
@@ -32,6 +33,7 @@ class UserApi(Resource):
             db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "用户创建失败"})
         return jsonify({"status": True, "desc": "用户创建成功"})
 
@@ -52,6 +54,7 @@ class UserApi(Resource):
             db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "用户修改失败"})
         return jsonify({"status": True, "desc": "用户修改成功"})
 
@@ -61,6 +64,7 @@ class UserApi(Resource):
             db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "用户修改失败"})
         return jsonify({"status": True, "desc": "用户修改成功"})
 
@@ -85,6 +89,7 @@ class UserPasswordApi(Resource):
             db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "密码修改失败"})
         return jsonify({"status": True, "desc": "密码修改成功"})
 

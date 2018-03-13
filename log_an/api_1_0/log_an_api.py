@@ -20,6 +20,7 @@ class LogRuleTypeApi(Resource):
             rule_type_list = [rule_type._to_dict() for rule_type in rule_types]
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "规则类型信息获取失败"})
         return jsonify({"status": True, "rule_type_list": rule_type_list})
 
@@ -31,6 +32,7 @@ class LogRuleTypeApi(Resource):
             db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "规则类型创建失败,检查是否重复创建"})
         return jsonify({"status": True, "desc": "规则类型创建成功"})
 
@@ -57,6 +59,7 @@ class LogRuleFile(Resource):
             return send_file(file_name, mimetype="application/xml", as_attachment=True)
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "规则文件下载失败"})
 
     def post(self, rule_type_id):
@@ -85,6 +88,7 @@ class LogRuleFile(Resource):
 
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "上传规则文件错误"})
         return jsonify({"status": True, "desc": "上传规则文件成功"})
 
@@ -114,6 +118,7 @@ class LogRulesApi(Resource):
            rule_list = [rule._to_dict() for rule in rules]
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "读取规则信息失败"})
         return jsonify({"status": True, "rules": rule_list})
 
@@ -132,6 +137,7 @@ class LogLogsApi(Resource):
             log_list = [log._to_dict() for log in logs]
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "获取日志信息失败"})
         return jsonify({"status": True, "page": page, "per_page": per_page,
                         "total": total, "logs": log_list})
@@ -161,6 +167,7 @@ class LogLogsApi(Resource):
             log_list = [log._to_dict() for log in logs]
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "获取日志信息失败"})
         return jsonify({"status": True, "page": page, "per_page": per_page,
                         "total": total, "logs": log_list})

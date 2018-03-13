@@ -13,6 +13,7 @@ class SelectorApi(Resource):
             selectors_list = [selector._to_dict() for selector in selectors]
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "获取权限信息失败"})
         return jsonify({"status": True, "selectors": selectors_list})
 
@@ -25,6 +26,7 @@ class SelectorApi(Resource):
 
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "权限创建失败"})
         return jsonify({"status": True, "desc": "权限创建成功"})
 
@@ -43,6 +45,7 @@ class SelectorApi(Resource):
             db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "权限修改失败"})
         return jsonify({"status": True, "desc": "权限修改成功"})
 
@@ -52,6 +55,7 @@ class SelectorApi(Resource):
             db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "权限修改失败"})
         return jsonify({"status": True, "desc": "权限修改成功"})
 

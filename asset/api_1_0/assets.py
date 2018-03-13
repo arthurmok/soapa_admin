@@ -21,6 +21,7 @@ class AssetsTypeListApi(Resource):
             asset_type_list = [assets_type._to_dict() for assets_type in assets_types]
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "获取资产类别失败"})
         return jsonify({"status": True, "assets_types": asset_type_list})
 
@@ -34,6 +35,7 @@ class AssetsAgentTypeListApi(Resource):
             asset_agent_type_list = [assets_agent_type._to_dict() for assets_agent_type in assets_agent_types]
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "获取资产agent类别失败"})
         return jsonify({"status": True, "assets_agent_types": asset_agent_type_list})
 
@@ -60,6 +62,7 @@ class AssetsListApi(Resource):
             asset_list = [asset._to_dict() for asset in assets]
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "获取资产失败"})
         return jsonify({"status": True, "page": page, "per_page": per_page,
                         "total": total, "assets": asset_list})
@@ -73,6 +76,7 @@ class AssetsListApi(Resource):
             db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "资产添加失败"})
         return jsonify({"status": True, "desc": "资产添加成功"})
 
@@ -86,6 +90,7 @@ class AssetsApi(Resource):
                 return jsonify({"status": False, "desc": "无法查询到该资产"})
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "查询资产失败"})
         return jsonify({"status": True, "asset": asset._to_dict()})
 
@@ -111,6 +116,7 @@ class AssetsApi(Resource):
             db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "资产修改失败"})
         return jsonify({"status": True, "desc": "资产修改成功"})
 
@@ -120,6 +126,7 @@ class AssetsApi(Resource):
             db.session.commit()
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "资产删除失败"})
         return jsonify({"status": True, "desc": "资产删除成功"})
 
@@ -140,6 +147,7 @@ class AssetsFileApi(Resource):
 
         except Exception, e:
             logger.error(e)
+            db.session.rollback()
             return jsonify({"status": False, "desc": "资产导入失败"})
         return jsonify({"status": True, "desc": "资产导入成功"})
 
