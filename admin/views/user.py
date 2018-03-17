@@ -64,6 +64,7 @@ def api_login():
         login_user(user)
     except Exception, e:
         logger.error(e)
+        db.session.rollback()
         return jsonify({"status": False, "desc": "用户登陆失败"})
     return jsonify({"status": True, "desc": "用户登陆成功"})
 

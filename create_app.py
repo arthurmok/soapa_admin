@@ -6,6 +6,7 @@ from asset import asset_app
 from admin import admin_app
 from insp import inspect_app
 from log_an import log_an_app
+from ops import ops_app
 
 
 def create_app():
@@ -23,6 +24,7 @@ def create_app():
     app.register_blueprint(admin_app, url_prefix='')
     app.register_blueprint(inspect_app, url_prefix='/insp')
     app.register_blueprint(log_an_app, url_prefix='/log')
+    app.register_blueprint(ops_app, url_prefix='/ops')
     # app.register_blueprint(asset_api_blue, url_prefix='/api/v1.0')
 
 
