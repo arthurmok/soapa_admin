@@ -63,13 +63,23 @@ class SecurityExpert(db.Model):
     resume = db.Column(db.Text, nullable=False)
     fields = db.relationship('SecurityField', secondary=ops_expert_field_rela,
                             backref=db.backref('experts', lazy='dynamic'),
-                            lazy='dynamic', cascade="all, delete, delete-orphan", single_parent=True)
+                            lazy='dynamic')
 
     def __init__(self, name, phone, email, resume):
         self.name = name
         self.phone = phone
         self.email = email
         self.resume = resume
+
+    def _to_dict(self):
+        expert_dict = {
+            'id': self.id,
+            'name': self.name,
+            'phone': self.phone,
+            'resume': self.resume,
+            'fields': [expert_field._to_dict_for_type() for expert_field in self.fields]
+        }
+        return expert_dict
 
 
 class SecurityExpertRuleRela(db.Model):

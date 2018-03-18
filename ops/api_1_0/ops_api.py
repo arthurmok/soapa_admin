@@ -2,7 +2,7 @@
 from flask import jsonify, request
 from flask_restful import Resource
 from ops.models.ops_model import SecurityField, SecurityFieldType, SecurityExpert, SecurityExpertRuleRela
-from log_an.models.log_an_model import LogRuleType
+from log_an.models.log_an_model import LogRuleType, LogRules
 from ops import db, logger, api
 
 
@@ -53,7 +53,23 @@ class SecurityFieldApi(Resource):
 
 class SecurityExpertApi(Resource):
     def get(self, id=None):
-        pass
+        try:
+            if id:
+
+                expert_rules = db.session.query(SecurityExpertRuleRela.rule_id
+                                                   ).filter(SecurityExpertRuleRela.expert_id == id).all()
+                expert_rule_ids = [expert_rule[0] for expert_rule in expert_rules]
+                rules = db.session.query(LogRules).filter(LogRules.rule_id.in_(expert_rule_ids)).all()
+                expert_rules = [rule._to_dict_for_ops() for rule in rules]
+                return jsonify({"status": True, "expert_rules": expert_rules})
+            experts = db.session.query(SecurityExpert).all()
+            experts_list = [expert._to_dict() for expert in experts]
+        except Exception, e:
+            print e
+            logger.error(e)
+            db.session.rollback()
+            return jsonify({"status": False, "desc": "专家信息获取失败"})
+        return jsonify({"status": True, "experts": experts_list})
 
     def post(self):
         try:
@@ -72,17 +88,46 @@ class SecurityExpertApi(Resource):
             expert.fields = expert_field_list
             db.session.add(expert)
             db.session.flush()
-            expert_id = expert.id
             db.session.commit()
+            expert_id = expert.id
             for rule_id in expert_rule_ids:
                 expert_rule_rela = SecurityExpertRuleRela(expert_id, rule_id)
                 db.session.add(expert_rule_rela)
                 db.session.commit()
         except Exception, e:
+            print e
             logger.error(e)
             db.session.rollback()
             return jsonify({"status": False, "desc": "专家信息添加失败"})
         return jsonify({"status": True, "desc": "专家信息添加成功"})
+
+    def put(self, id):
+        try:
+            expert = db.session.query(SecurityExpert).filter(SecurityExpert.id == id).first()
+            expert_id = expert.id
+            expert_dict = request.get_json()
+            expert.name = expert_dict["name"]
+            expert.phone = expert_dict["phone"]
+            expert.email = expert_dict["email"]
+            expert.resume = expert_dict["resume"]
+            expert_filed_ids = expert_dict['expert_field_ids']
+            expert_rule_ids = expert_dict['expert_rule_ids']
+            expert_field_list = []
+            for expert_field_id in expert_filed_ids:
+                expert_field = db.session.query(SecurityField).filter(SecurityField.id == expert_field_id).first()
+                expert_field_list.append(expert_field)
+            expert.fields = expert_field_list
+            db.session.add(expert)
+            db.session.query(SecurityExpertRuleRela).filter(SecurityExpertRuleRela.expert_id == id).delete()
+            for rule_id in expert_rule_ids:
+                expert_rule_rela = SecurityExpertRuleRela(expert_id, rule_id)
+                db.session.add(expert_rule_rela)
+            db.session.commit()
+        except Exception, e:
+            logger.error(e)
+            db.session.rollback()
+            return jsonify({"status": False, "desc": "专家信息修改失败"})
+        return jsonify({"status": True, "desc": "专家信息修改成功"})
 
     def delete(self, id):
         try:
@@ -94,16 +139,75 @@ class SecurityExpertApi(Resource):
             db.session.query(SecurityExpertRuleRela).filter(SecurityExpertRuleRela.expert_id == id).delete()
             db.session.commit()
         except Exception, e:
-            print e
             logger.error(e)
             db.session.rollback()
             return jsonify({"status": False, "desc": "专家信息删除失败"})
         return jsonify({"status": True, "desc": "专家信息删除成功"})
 
 
+class ExpertRuleRelaApi(Resource):
+    def get(self, rule_id):
+        try:
+            rule_experts = db.session.query(SecurityExpertRuleRela.expert_id
+                                            ).filter(SecurityExpertRuleRela.rule_id == rule_id).all()
+            if rule_experts:
+                rule_expert_ids = [rule_expert[0] for rule_expert in rule_experts]
+                experts = db.session.query(SecurityExpert).filter(SecurityExpert.id.in_(rule_expert_ids)).all()
+                rule_experts = [expert._to_dict() for expert in experts]
+            else:
+                raise Exception
+        except Exception, e:
+            logger.error(e)
+            db.session.rollback()
+            return jsonify({"status": False, "desc": "专家信息查询失败"})
+        return jsonify({"status": True, "log_experts": rule_experts})
+
+
+class ExpertSearchApi(Resource):
+    def post(self):
+        try:
+            expert_dict = request.get_json()
+            name = expert_dict.get("name")
+            phone = expert_dict.get("phone")
+            email = expert_dict.get("email")
+            resume = expert_dict.get("resume")
+            expert_filed_ids = expert_dict.get('expert_field_ids')
+            query = db.session.query(SecurityExpert)
+            if name:
+                query = query.filter(SecurityExpert.name.like(name))
+            if phone:
+                query = query.filter(SecurityExpert.phone.like(phone))
+            if email:
+                query = query.filter(SecurityExpert.email.like(email))
+            if resume:
+                query = query.filter(SecurityExpert.resume.like(resume))
+            if expert_filed_ids:
+                experts_list = []
+                experts = query.all()
+                for expert in experts:
+                    field_ids = [field.id for field in expert.fields]
+                    if set(field_ids).intersection(set(expert_filed_ids)):
+                        experts_list.append(expert._to_dict())
+            else:
+                experts = query.all()
+                if experts:
+                    experts_list = [expert._to_dict() for expert in experts]
+                else:
+                    experts_list = []
+        except Exception, e:
+            print e
+            logger.error(e)
+            db.session.rollback()
+            return jsonify({"status": False, "desc": "专家信息搜索失败"})
+
+        return jsonify({"status": True, "experts": experts_list})
+
+
 api.add_resource(SecurityFieldApi, '/ops/api/v1.0/sec_fields', endpoint='sec_fields')
 api.add_resource(SecurityFieldTypeApi, '/ops/api/v1.0/sec_field_types', endpoint='sec_field_types')
 api.add_resource(SecurityExpertApi, '/ops/api/v1.0/experts', endpoint='sec_experts', methods=['GET', 'POST'])
 api.add_resource(SecurityExpertApi, '/ops/api/v1.0/experts/<int:id>',
-                 endpoint='sec_experts_id', methods=['GET', 'DELETE'])
+                 endpoint='sec_experts_id', methods=['GET', 'DELETE', 'PUT'])
 api.add_resource(LogRuleTypeApi, '/log_an/api/v1.0/ops/rule/types', endpoint='ops_rule_types')
+api.add_resource(ExpertRuleRelaApi, '/log_an/api/v1.0/log/experts/<int:rule_id>', endpoint='log_experts')
+api.add_resource(ExpertSearchApi, '/ops/api/v1.0/search/experts', methods=['POST'], endpoint='search_experts')

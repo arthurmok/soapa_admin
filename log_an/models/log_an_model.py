@@ -76,7 +76,8 @@ class LogLogs(db.Model):
             dstip=self.dstip,
             dealing=self.dealing,
             level=self.level,
-            describe=self.describe
+            describe=self.describe,
+            rule_id=self.rule_id
         )
 
         return log_dict

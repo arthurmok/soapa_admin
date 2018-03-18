@@ -18,6 +18,12 @@ header = {
 }
 
 
+def test_ops_save_fields():
+    url = "http://127.0.0.1:8092/ops/api/v1.0/save_fields"
+    resp = requests.post(url)
+    print json.dumps(resp.json())
+
+
 def test_ops_rule_type_get():
     url = "http://127.0.0.1:8092/log_an/api/v1.0/ops/rule/types"
     resp = requests.get(url)
@@ -43,8 +49,8 @@ def test_expert_post():
         phone="13838383838",
         email="13838383838@qq.com",
         resume="网络安全专家",
-        expert_field_ids=[3, 4, 5],
-        expert_rule_ids=[31103, 31166]
+        expert_field_ids=[4, 4, 6],
+        expert_rule_ids=[31108, 31166]
     )
     json_data = json.dumps(data)
     print json_data
@@ -58,55 +64,69 @@ def test_expert_del():
     resp = requests.delete(url)
     print json.dumps(resp.json())
 
-def test_asset_get_by_id():
-    url = "http://127.0.0.1:8092/asset/api/v1.0/assets/4"
+
+def test_expert_put():
+
+    data = dict(
+        name="欧阳锋",
+        phone="13838383338",
+        email="13838383338@qq.com",
+        resume="网络安全专家",
+        expert_field_ids=[4, 3, 6],
+        expert_rule_ids=[31108, 31166]
+    )
+    json_data = json.dumps(data)
+    print json_data
+    url = "http://127.0.0.1:8092/ops/api/v1.0/experts/1"
+    resp = requests.put(url, json=data, headers=header)
+    print json.dumps(resp.json())
+
+
+def test_experts_get():
+    url = "http://127.0.0.1:8092/ops/api/v1.0/experts"
     resp = requests.get(url)
     print json.dumps(resp.json())
 
 
-def test_asset_update():
+def test_experts_get_rules():
+    url = "http://127.0.0.1:8092/ops/api/v1.0/experts/2"
+    resp = requests.get(url)
+    print json.dumps(resp.json())
+
+
+def test_log_get_experts():
+    url = "http://127.0.0.1:8092/log_an/api/v1.0/log/experts/31108"
+    resp = requests.get(url)
+    print json.dumps(resp.json())
+
+
+def test_expert_search_post():
+
     data = dict(
-        serial_no="HZSP1401",
-        name="思科防护墙",
-        location="杭州XA分公司",
-        owner="王五xx",
-        owner_contact="wang@shuofanginfo.com",
-        type_id=3,
-        ip="114.15.12.14",
-        agent_type_id=2,
-        port=None,
-        network="DMZ",
-        manufacturer="思科",
-        describe="思科防护墙"
+        name="欧阳锋",
+        phone="13838383838",
+        email="13838383838@qq.com",
+        resume="网络安全专家",
+        expert_field_ids=[9, 10, 11],
+        expert_rule_ids=[31108, 31166]
     )
     json_data = json.dumps(data)
     print json_data
-    url = "http://127.0.0.1:8092/asset/api/v1.0/assets/12"
-    resp = requests.put(url, json=data)
-
-    print json.dumps(resp.json())
-
-
-def test_asset_delete():
-    url = "http://127.0.0.1:8092/asset/api/v1.0/assets/4"
-    resp = requests.delete(url)
-    print json.dumps(resp.json())
-
-
-def test_asset_uploads():
-    import os
-    from config import D_UP_LOADS
-    file_name = os.path.join(D_UP_LOADS, "资产管理示例.xlsx")
-    # print file_name
-    files = {'file': open(file_name, 'rb')}
-    url = "http://127.0.0.1:8092/asset/api/v1.0/assets/file"
-    resp = requests.post(url, files=files)
+    url = "http://127.0.0.1:8092/ops/api/v1.0/search/experts"
+    resp = requests.post(url, json=data, headers=header)
     print json.dumps(resp.json())
 
 
 if __name__ == '__main__':
+    # test_ops_save_fields()
     # test_sec_field_type_get()
-    # test_sec_field_get()
-    # test_expert_post()
     # test_ops_rule_type_get()
-    test_expert_del()
+    # test_sec_field_get()
+
+    # test_expert_post()
+    # test_expert_put()
+    # test_expert_del()
+    # test_experts_get()
+    # test_experts_get_rules()
+    # test_log_get_experts()
+    test_expert_search_post()

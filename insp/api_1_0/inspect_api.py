@@ -107,9 +107,10 @@ class InspectSystemApi(Resource):
             sys_dict['update_time'] = datetime.now()
             inspect_system = InspectSystems._from_dict(sys_dict)
             db.session.add(inspect_system)
+            db.session.commit()
             db.session.flush()
             system_id = inspect_system.id
-            db.session.commit()
+
         except Exception, e:
             logger.error(e)
             db.session.rollback()
