@@ -95,7 +95,12 @@ class LogRuleType(db.Model):
         self.describe = describe
 
     def _to_dict(self):
-        rule_type_dict = {col.name: getattr(self, col.name, None) for col in self.__table__.columns}
+        rule_type_dict = {
+            "id": self.id,
+            "type_name": self.type_name,
+            "rule_file": self.rule_file,
+            "describe": self.describe
+            }
         if rule_type_dict['rule_file']:
             rule_type_dict['rule_file'] = '/log_an/api/v1.0/rule/types/file/%d' % self.id
         return rule_type_dict
@@ -104,6 +109,14 @@ class LogRuleType(db.Model):
     def _from_dict(rule_type_dict):
         return LogRuleType(type_name=rule_type_dict['type_name'], describe=rule_type_dict['describe'])
 
+    def _to_dict_for_ops(self):
+        rule_type_dict = {
+            "id": self.id,
+            "type_name": self.type_name,
+            "describe": self.describe,
+            "rules": [rule._to_dict_for_ops() for rule in self.type_rules]
+        }
+        return rule_type_dict
 
 class LogRules(db.Model):
     __tablename__ = 'log_rules'
@@ -111,7 +124,7 @@ class LogRules(db.Model):
     level = db.Column(db.Integer, nullable=False, default=0)
     describe = db.Column(db.Text, nullable=True)
     rule_type_id = db.Column(db.Integer, db.ForeignKey(LogRuleType.__tablename__+'.id'))
-    rule_type = db.relationship('LogRuleType')
+    rule_type = db.relationship('LogRuleType', backref='type_rules')
     solution_id = db.Column(db.Integer, nullable=True)
 
     def __init__(self, rule_id, level, describe, rule_type_id, solution_id=None):
@@ -125,3 +138,10 @@ class LogRules(db.Model):
         rule_dict = {col.name: getattr(self, col.name, None) for col in self.__table__.columns}
         del(rule_dict['rule_type_id'])
         return rule_dict
+
+    def _to_dict_for_ops(self):
+        return {
+            "rule_id": self.rule_id,
+            "level": self.level,
+            "describe": self.describe
+        }

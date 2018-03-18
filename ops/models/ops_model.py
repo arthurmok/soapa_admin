@@ -3,32 +3,67 @@
 from ops import db
 
 
+class SecurityFieldType(db.Model):
+    __tablename__ = 'ops_security_field_type'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    type_name = db.Column(db.String(250), nullable=False)
+    fields = db.relationship('SecurityField', backref='field_type')
+
+    def __init__(self, type_name):
+        self.type_name = type_name
+
+    def _to_dict(self):
+        return {
+            "id": self.id,
+            "type_name": self.type_name,
+            "fields": [ field._to_dict_for_type() for field in self.fields]
+        }
+
+
+ops_expert_field_rela = db.Table('ops_expert_field_rela',
+    db.Column('id', db.Integer, primary_key=True, autoincrement=True),
+    db.Column('expert_id', db.Integer, db.ForeignKey('ops_security_expert.id')),
+    db.Column('field_id', db.Integer, db.ForeignKey('ops_security_field.id')),
+)
+
+
 class SecurityField(db.Model):
     __tablename__ = 'ops_security_field'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     field_name = db.Column(db.String(250), nullable=False)
-    field_type = db.Column(db.String(50), nullable=False)
+    field_type_id = db.Column(db.Integer, db.ForeignKey('ops_security_field_type.id'))
 
-    def __init__(self, field_name, field_type):
+    def __init__(self, field_name, field_type_id):
         self.field_name = field_name
-        self.field_type = field_type
+        self.field_type_id = field_type_id
 
     def _to_dict(self):
-        return {col.name: getattr(self, col.name, None) for col in self.__table__.cloumns}
+        return {
+            "id": self.id,
+            "field_name": self.field_name,
+            "field_type": {"id": self.field_type.id, "type_name": self.field_type.type_name}
+            }
 
-    def _to_tuple(self):
-        return self.field_type, self.field_name
+    def _to_dict_for_type(self):
+        return {
+            "id": self.id,
+            "field_name": self.field_name
+        }
 
 
 class SecurityExpert(db.Model):
-    __tablename__ = 'ops_security_export'
+    __tablename__ = 'ops_security_expert'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(50), nullable=False)
     phone = db.Column(db.String(250), nullable=False)
     email = db.Column(db.String(250), nullable=False)
     resume = db.Column(db.Text, nullable=False)
+    fields = db.relationship('SecurityField', secondary=ops_expert_field_rela,
+                            backref=db.backref('experts', lazy='dynamic'),
+                            lazy='dynamic', cascade="all, delete, delete-orphan", single_parent=True)
 
     def __init__(self, name, phone, email, resume):
         self.name = name
@@ -37,11 +72,16 @@ class SecurityExpert(db.Model):
         self.resume = resume
 
 
-ops_export_field_rela = db.Table('ops_export_field_rela',
-    db.Column('id', db.Integer, primary_key=True, autoincrement=True),
-    db.Column('export_id', db.Integer, db.ForeignKey('ops_security_export.id')),
-    db.Column('field_id', db.Integer, db.ForeignKey('ops_security_field.id')),
-)
+class SecurityExpertRuleRela(db.Model):
+    __tablename__ = 'ops_expert_rule_rela'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    expert_id = db.Column(db.Integer, nullable=False)
+    rule_id = db.Column(db.Integer, nullable=False)
+
+    def __init__(self, expert_id, rule_id):
+        self.expert_id = expert_id
+        self.rule_id = rule_id
 
 
 class SecuritySolution(db.Model):

@@ -26,28 +26,28 @@ JOBS = [
         'func': 'log_an.utils.rsync_log_job:_rsync_es_data_hour_job',
         'args': None,
         'trigger': 'interval',
-        'seconds': 60
+        'seconds': 1800
     },
     {
         'id': '_count_assets_alarm',
         'func': 'log_an.utils.rsync_log_job:_count_assets_alarm',
         'args': None,
         'trigger': 'interval',
-        'seconds': 60
-    },
-    {
-        'id': 'createschuler_job',
-        'func': 'log_an.utils.rsync_log_job:_rsync_es_data_job',
-        'args': None,
-        'trigger': 'date',
-        'run_date': datetime.now()+timedelta(seconds=10)
+        'seconds': 1800
     },
     # {
-    #     'id': 'rsync_log_daily_job',
+    #     'id': 'createschuler_job',
     #     'func': 'log_an.utils.rsync_log_job:_rsync_es_data_job',
     #     'args': None,
-    #     'trigger': {'type': 'cron', 'day_of_week': '*', 'month': '*', 'day': '*', 'hour': '*',
-    #                 'minute': '*', 'second': '*/10'}
-    # }
+    #     'trigger': 'date',
+    #     'run_date': datetime.now()+timedelta(seconds=610)
+    # },
+    {
+        'id': 'rsync_log_daily_job',
+        'func': 'log_an.utils.rsync_log_job:_rsync_es_data_job',
+        'args': None,
+        'trigger': {'type': 'cron', 'day_of_week': '*', 'month': '*', 'day': '*', 'hour': '1',
+                    'minute': '5', 'second': '5'}
+    }
 ]
 SCHEDULER_API_ENABLED = True
