@@ -101,10 +101,21 @@ class SecuritySolution(db.Model):
     solution_info = db.Column(db.Text, nullable=False)
     describe = db.Column(db.Text, nullable=True)
     solution_files = db.relationship('SolutionFiles', backref='solution')
+    rule_id = db.Column(db.Integer, nullable=True)
 
-    def __int__(self, solution_info, describe=None):
+    def __init__(self, solution_info, describe=None, rule_id=None):
         self.solution_info = solution_info
         self.describe = describe
+        self.rule_id = rule_id
+
+    def _to_dict(self):
+        return dict(
+            id=self.id,
+            solution_info=self.solution_info,
+            describe=self.describe,
+            solution_files=[solution_file._to_dict() for solution_file in self.solution_files],
+            rule_id=self.rule_id
+        )
 
 
 class SolutionFiles(db.Model):
@@ -118,3 +129,10 @@ class SolutionFiles(db.Model):
         self.file_name = file_name
         self.solution_id = solution_id
         self.file_url = file_url
+
+    def _to_dict(self):
+        return dict(
+            id=self.id,
+            file_name=self.file_name,
+            file_url=self.file_url
+        )

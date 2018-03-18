@@ -1,7 +1,11 @@
 # --*-- coding: utf-8 --*--
-from flask import jsonify, request
+import os
+from flask import jsonify, request, url_for
 from flask_restful import Resource
-from ops.models.ops_model import SecurityField, SecurityFieldType, SecurityExpert, SecurityExpertRuleRela
+
+from config import D_UP_LOADS
+from ops.models.ops_model import SecurityField, SecurityFieldType, SecurityExpert, SecurityExpertRuleRela, \
+    SecuritySolution, SolutionFiles
 from log_an.models.log_an_model import LogRuleType, LogRules
 from ops import db, logger, api
 
@@ -203,6 +207,81 @@ class ExpertSearchApi(Resource):
         return jsonify({"status": True, "experts": experts_list})
 
 
+class SecuritySolutionApi(Resource):
+    def get(self):
+        try:
+            solution_list = []
+            solutions = db.session.query(SecuritySolution).all()
+            for solution in solutions:
+                solution_dict = solution._to_dict()
+                if solution_dict['rule_id']:
+                    rule = db.session.query(LogRules).filter(LogRules.rule_id == solution_dict['rule_id']).first()
+                    if rule:
+                        rule_dict = rule._to_dict_for_ops()
+                        solution_dict['rule_id'] = rule_dict
+                solution_list.append(solution_dict)
+        except Exception, e:
+
+            logger.error(e)
+            db.session.rollback()
+            return jsonify({"status": False, "desc": "处理方案列表查询失败"})
+        return jsonify({"status": True, "solutions": solution_list})
+
+    def post(self):
+        try:
+            solution_dict = request.get_json()
+            solution_info = solution_dict.get('solution_info')
+            if not solution_info:
+                raise Exception
+            describe = solution_dict.get('describe')
+            rule_id = solution_dict.get('rule_id')
+
+            solution = SecuritySolution(solution_info, describe, rule_id)
+            db.session.add(solution)
+            db.session.commit()
+
+        except Exception, e:
+
+            logger.error(e)
+            db.session.rollback()
+            return jsonify({"status": False, "desc": "处理方案添加失败"})
+        return jsonify({"status": True, "desc": "处理方案添加成功"})
+
+    def delete(self, id):
+        pass
+
+    def put(self, id):
+        pass
+
+
+class SecuritySolutionFilesApi(Resource):
+    def post(self, id):
+        try:
+            files = request.files
+            if not files:
+                raise Exception
+            for file in files.values():
+                file_name = file.filename
+                file_dir = os.path.join(D_UP_LOADS, file_name)
+                file.save(file_dir)
+                file.close()
+                exist_file = db.session.query(SolutionFiles).filter(SolutionFiles.file_name == file_name).first()
+                if not exist_file:
+                    solution_file = SolutionFiles(file_name, id)
+                    db.session.add(solution_file)
+                    db.session.commit()
+                    db.session.flush()
+                    solution_file.file_url = url_for('solution_files', id=solution_file.id)
+                    db.session.add(solution_file)
+                    db.session.commit()
+
+        except Exception, e:
+            logger.error(e)
+            db.session.rollback()
+            return jsonify({"status": False, "desc": "处理方案文件上传失败"})
+        return jsonify({"status": True, "desc": "处理方案文件上传成功"})
+
+
 api.add_resource(SecurityFieldApi, '/ops/api/v1.0/sec_fields', endpoint='sec_fields')
 api.add_resource(SecurityFieldTypeApi, '/ops/api/v1.0/sec_field_types', endpoint='sec_field_types')
 api.add_resource(SecurityExpertApi, '/ops/api/v1.0/experts', endpoint='sec_experts', methods=['GET', 'POST'])
@@ -211,3 +290,7 @@ api.add_resource(SecurityExpertApi, '/ops/api/v1.0/experts/<int:id>',
 api.add_resource(LogRuleTypeApi, '/log_an/api/v1.0/ops/rule/types', endpoint='ops_rule_types')
 api.add_resource(ExpertRuleRelaApi, '/log_an/api/v1.0/log/experts/<int:rule_id>', endpoint='log_experts')
 api.add_resource(ExpertSearchApi, '/ops/api/v1.0/search/experts', methods=['POST'], endpoint='search_experts')
+api.add_resource(SecuritySolutionApi, '/ops/api/v1.0/solutions', methods=['POST', 'GET'], endpoint='solutions')
+api.add_resource(SecuritySolutionFilesApi, '/ops/api/v1.0/solution/files/<int:id>',
+                 # upload: id=solution_id, download/delete:id=file_id
+                 methods=['POST', 'GET'], endpoint='solution_files')

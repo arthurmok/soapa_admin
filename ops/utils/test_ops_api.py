@@ -117,6 +117,42 @@ def test_expert_search_post():
     print json.dumps(resp.json())
 
 
+def test_solution_post():
+    import os
+    from config import D_UP_LOADS
+    file_name = os.path.join(D_UP_LOADS, "资产管理示例.xlsx")
+    # print file_name
+    files = {"file": open(file_name, 'rb')}
+    data = dict(
+        solution_info="网络安全解决方案",
+        describe="网络安全解决方案",
+        rule_id=31108,
+    )
+    json_data = json.dumps(data)
+    print json_data
+    url = "http://127.0.0.1:8092/ops/api/v1.0/solutions"
+    # resp = requests.post(url, json=data, headers=header)
+    # print json.dumps(resp.json())
+
+
+def test_solution_files_post():
+    import os
+    from config import D_UP_LOADS
+    file_name1 = os.path.join(D_UP_LOADS, "资产管理示例.xlsx")
+    file_name = os.path.join(D_UP_LOADS, "资产管理子系统.docx")
+    # print file_name
+    files = {'file1': open(file_name1, 'rb'), 'file2': open(file_name, 'rb'), }
+    url = "http://127.0.0.1:8092/ops/api/v1.0/solution/files/1"
+    resp = requests.post(url, files=files)
+    print json.dumps(resp.json())
+
+
+def test_solution_get():
+    url = "http://127.0.0.1:8092/ops/api/v1.0/solutions"
+    resp = requests.get(url)
+    print json.dumps(resp.json())
+
+
 if __name__ == '__main__':
     # test_ops_save_fields()
     # test_sec_field_type_get()
@@ -129,4 +165,7 @@ if __name__ == '__main__':
     # test_experts_get()
     # test_experts_get_rules()
     # test_log_get_experts()
-    test_expert_search_post()
+    # test_expert_search_post()
+    # test_solution_post()
+    # test_solution_files_post()
+    test_solution_get()
