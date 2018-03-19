@@ -131,8 +131,8 @@ def test_solution_post():
     json_data = json.dumps(data)
     print json_data
     url = "http://127.0.0.1:8092/ops/api/v1.0/solutions"
-    # resp = requests.post(url, json=data, headers=header)
-    # print json.dumps(resp.json())
+    resp = requests.post(url, json=data, headers=header)
+    print json.dumps(resp.json())
 
 
 def test_solution_files_post():
@@ -148,8 +148,29 @@ def test_solution_files_post():
 
 
 def test_solution_get():
-    url = "http://127.0.0.1:8092/ops/api/v1.0/solutions"
+    url = "http://127.0.0.1:8092/ops/api/v1.0/solutions?" \
+          "page=1&per_page=10&rule_id=31108&rule_desc=Ignored&solution_info="
     resp = requests.get(url)
+    print json.dumps(resp.json())
+
+
+def test_solution_delete():
+    url = "http://127.0.0.1:8092/ops/api/v1.0/solutions/1"
+    resp = requests.delete(url)
+    print json.dumps(resp.json())
+
+
+def test_solution_put():
+
+    data = dict(
+        solution_info="网络安全解决方案修改",
+        describe="网络安全解决方案修改",
+        rule_id=31108,
+    )
+    json_data = json.dumps(data)
+    print json_data
+    url = "http://127.0.0.1:8092/ops/api/v1.0/solutions/2"
+    resp = requests.put(url, json=data, headers=header)
     print json.dumps(resp.json())
 
 
@@ -169,3 +190,5 @@ if __name__ == '__main__':
     # test_solution_post()
     # test_solution_files_post()
     test_solution_get()
+    # test_solution_delete()
+    # test_solution_put()
