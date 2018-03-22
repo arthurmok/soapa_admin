@@ -4,7 +4,7 @@ from flask import session, abort, request, redirect, url_for
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 from admin.models.user import TokenMapping, User
-from admin import db, logger
+from admin import db, logger, mem_cache
 from config import SECRET_KEY, SESSION_LIFETIME
 
 

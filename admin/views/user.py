@@ -1,10 +1,10 @@
 # --*-- coding:utf-8 --*--
 import StringIO
 from flask_login import login_user, logout_user, current_user, login_required
-from flask import redirect, render_template, request, flash, session, url_for, jsonify
+from flask import redirect, render_template, request, flash, session, url_for, jsonify, make_response
 from admin.utils.validate_code import create_validate_code
 from admin.models.user import *
-from admin import admin_app, db
+from admin import admin_app, db, mem_cache
 from ext import app
 
 
@@ -42,11 +42,11 @@ def api_login():
             if not username:
                 username = auth_dict.get('userName')
             password = auth_dict.get('password')
-            code = auth_dict.get('auth_code')
+            # code = auth_dict.get('auth_code')
         else:
             username = request.values.get('username')
             password = request.values.get('password')
-            code = request.values.get('auth_code')
+            # code = request.values.get('auth_code')
         # if auth_code.upper() != code.upper():
         #     return jsonify({"status": False, "desc": "验证码错误"})
         user = db.session.query(User).filter(User.name == username, User.status==True).first()
@@ -60,13 +60,20 @@ def api_login():
         # role = db.session.query(Role).filter(Role.id == user.rid).first()
         # session['role'] = role.name
         selectors = get_selectors(user)
-        session['selectors'] = selectors
+        mem_cache.set(user.name, selectors, timeout=30*60)
+        print 111111, mem_cache.get(user.name)
+        # session['selectors'] = selectors
         login_user(user)
+        response = make_response(jsonify({"status": True, "desc": "用户登陆成功"}))
+        response.set_cookie('username', user.name)
+
     except Exception, e:
+        print e
         logger.error(e)
         db.session.rollback()
         return jsonify({"status": False, "desc": "用户登陆失败"})
-    return jsonify({"status": True, "desc": "用户登陆成功"})
+    # response.headers['Content-Type'] = 'text/html; charset=utf-8'
+    return response
 
 
 @admin_app.route('/login', methods=['GET', 'POST'])

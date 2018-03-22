@@ -11,6 +11,8 @@ class UserApi(Resource):
         try:
             users = db.session.query(User).all()
             users_list = [user._to_dict() for user in users]
+            # client_cookie = request.cookies.values()
+            # print 222222, client_cookie
         except Exception, e:
             logger.error(e)
             db.session.rollback()

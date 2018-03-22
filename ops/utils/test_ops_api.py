@@ -1,7 +1,7 @@
 # --*-- coding: utf-8 --*--
 import json
-
 import requests
+from requests.auth import HTTPDigestAuth
 
 header = {
     # "Host": ob['domain'],
@@ -16,6 +16,10 @@ header = {
     # # "Cookie": ob.get('cookie')
     "Content-Type": "application/json; charset=utf-8",
 }
+
+AGENT_USER = 'soapa'
+AGENT_PWD = 'SF@yjxt17'
+AGENT_URL = 'https://114.55.219.41:55000'
 
 
 def test_ops_save_fields():
@@ -54,7 +58,7 @@ def test_expert_post():
     )
     json_data = json.dumps(data)
     print json_data
-    url = "http://127.0.0.1:8092/ops/api/v1.0/experts"
+    url = "http://114.55.219.41:8092/ops/api/v1.0/experts"
     resp = requests.post(url, json=data, headers=header)
     print json.dumps(resp.json())
 
@@ -174,12 +178,89 @@ def test_solution_put():
     print json.dumps(resp.json())
 
 
+def test_rules_upload_for_server():
+    import os
+    from config import D_UP_LOADS
+    file_name1 = os.path.join(D_UP_LOADS, "0245-web_rules.xml")
+    f = open(file_name1, 'rb')
+    print f
+    files = {"name": "0245-web_rules.xml",  "data": open(file_name1, 'rb')}
+    url = "http://114.55.219.41:55000/rules/upload"
+    resp = requests.post(url, files=files)
+    print resp.status_code, resp.headers
+    print json.dumps(resp.json())
+
+
+def test_agents_get():
+    # url = "%s/agents?pretty&offset=0&limit=5&sort=-ip,name" % AGENT_URL
+    # # print url
+    # resp = requests.get(url, auth=(AGENT_USER, AGENT_PWD), verify=False)
+    url = 'http://127.0.0.1:8092/ops/api/v1.0/agents?page=1&per_page=10&sort=-ip,name'
+    resp = requests.get(url)
+    print resp.json()
+    print json.dumps(resp.json())
+
+
+def test_agents_get_by_id():
+    url = 'http://127.0.0.1:8092/ops/api/v1.0/agents/000'
+    resp = requests.get(url)
+    print resp.json()
+    print json.dumps(resp.json())
+
+
+def test_agents_get_key():
+    url = 'http://127.0.0.1:8092/ops/api/v1.0/agents/001?key'
+    resp = requests.get(url)
+    print resp.json()
+    print json.dumps(resp.json())
+
+
+def test_agents_del_by_id():
+    url = 'http://127.0.0.1:8092/ops/api/v1.0/agents/003'
+    resp = requests.delete(url)
+    print resp.json()
+    print json.dumps(resp.json())
+
+
+def test_agents_post():
+    url = 'http://127.0.0.1:8092/ops/api/v1.0/agents'
+    data = dict(
+        name="test_agent",
+        ip="192.168.0.111"
+    )
+    json_data = json.dumps(data)
+    print json_data
+    resp = requests.post(url, json=data, headers=header)
+    print resp.json()
+    print json.dumps(resp.json())
+
+
+# 重启部分agent
+def test_agents_post_restart():
+    url = 'http://127.0.0.1:8092/ops/api/v1.0/agents?restart=yes'
+    data = dict(
+        ids=['000', '001']
+    )
+    json_data = json.dumps(data)
+    print json_data
+    resp = requests.post(url, json=data, headers=header)
+    print resp.json()
+    print json.dumps(resp.json())
+
+
+# 重启所有
+def test_agents_put():
+    url = 'http://127.0.0.1:8092/ops/api/v1.0/agents'
+    resp = requests.put(url)
+    print resp.json()
+    print json.dumps(resp.json())
+
+
 if __name__ == '__main__':
     # test_ops_save_fields()
     # test_sec_field_type_get()
-    # test_ops_rule_type_get()
+    test_ops_rule_type_get()
     # test_sec_field_get()
-
     # test_expert_post()
     # test_expert_put()
     # test_expert_del()
@@ -189,6 +270,15 @@ if __name__ == '__main__':
     # test_expert_search_post()
     # test_solution_post()
     # test_solution_files_post()
-    test_solution_get()
+    # test_solution_get()
     # test_solution_delete()
     # test_solution_put()
+    # test_rules_upload_for_server()
+    # test_agents_get()
+    # test_agents_get_by_id()
+    test_agents_get_key()
+    # test_agents_post()
+    # test_agents_del_by_id()
+    # test_agents_put()
+    # test_agents_post_restart()
+

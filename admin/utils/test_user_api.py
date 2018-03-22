@@ -69,15 +69,16 @@ def test_user_delete():
 def test_user_login():
 
     data = dict(
-        username='test_user',
+        username='admin',
         password='abcd1234',
-        auth_code='hqxq',
+        # auth_code='hqxq',
     )
     json_data = json.dumps(data)
 
     print json_data
     url = "http://127.0.0.1:8092/api/login"
     resp = requests.post(url, json=data, headers=header)
+    print resp.headers
     print json.dumps(resp.json())
 
 
@@ -85,7 +86,7 @@ def test_password_post():
     data = dict(
         username='test_user',
         password='abcd.1234',
-        new_password='abcd1234',
+        new_password='abcd1234'
     )
     json_data = json.dumps(data)
 
