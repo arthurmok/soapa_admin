@@ -86,6 +86,7 @@ def _save_log(date_str, dstip_list=[]):
         log_level = log_dict['_source'].get('rule').get('level') if log_dict['_source'].get('rule') else 0
         describe = log_dict['_source'].get('rule').get('description') if \
             log_dict['_source'].get('rule') else None
+        server_os = log_dict['_source'].get('system_name')
         if log_level in [1, 2]:
             level = 1
         elif log_level in [3, 4, 5]:
@@ -103,7 +104,8 @@ def _save_log(date_str, dstip_list=[]):
         if not db.session.query(LogLogs).filter(LogLogs.log_id == log_id).first():
             log = LogLogs(log_id, city_name, country_name, url, attack_time, host, rule_id,
                           source, agent_id, full_log, decoder_name, srcip, location, dstip,
-                          dstport, level=level, describe=describe, hostname=hostname)
+                          dstport, level=level, describe=describe, hostname=hostname,
+                          server_os=server_os)
             db.session.add(log)
             db.session.commit()
 

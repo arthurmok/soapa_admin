@@ -92,12 +92,22 @@ def test_post_log_logs():
     print json.dumps(resp.json())
 
 
+def test_log_put_dealing():
+    url = 'http://127.0.0.1:8092/log_an/api/v1.0/log/logs/AV-zlLW4-avDnWrhyh-h'
+    data = dict(
+        dealing=2
+    )
+    resp = requests.put(url, json=data, headers=header)
+    print json.dumps(resp.json())
+
+
 if __name__ == '__main__':
     # test_post_rule_type()
     # test_get_rule_type()
-    test_del_rule_type()
+    # test_del_rule_type()
     # test_post_rule_file()
     # test_get_rule_rules()
     # test_get_log_logs()
     # test_get_log_detail()
     # test_post_log_logs()
+    test_log_put_dealing()
