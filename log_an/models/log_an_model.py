@@ -27,10 +27,11 @@ class LogLogs(db.Model):
     describe = db.Column(db.Text, nullable=True)
     hostname = db.Column(db.String(250), nullable=True)
     dealing = db.Column(db.Integer, default=1)  # 2应急处置、3安全处置、1未处置
+    server_os = db.Column(db.String(50), nullable=True)
 
     def __init__(self, log_id, city_name, country_name, url, attack_time, host, rule_id,
                  source, agent_id, full_log, decoder_name, srcip, location, dstip, dstport,
-                 level=0, describe=None, hostname=None, dealing=1):
+                 level=0, describe=None, hostname=None, dealing=1, server_os=None):
         self.log_id = log_id
         self.city_name = city_name
         self.country_name = country_name
@@ -50,6 +51,7 @@ class LogLogs(db.Model):
         self.describe = describe
         self.hostname = hostname
         self.dealing = dealing
+        self.server_os = server_os
 
     def _get_log_detail(self):
         log_detail = dict(

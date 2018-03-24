@@ -7,6 +7,7 @@ import xml.dom.minidom
 from flask import request, jsonify, send_file
 from flask_restful import Resource
 
+from asset.models.assets import AssetAssets
 from common.pagenate import get_page_items
 from config import D_UP_LOADS
 from log_an import api, db, logger
@@ -152,7 +153,11 @@ class LogLogsApi(Resource):
         try:
             search_dict = request.get_json()
             page, per_page, offset, search_msg = get_page_items()
-            query = db.session.query(LogLogs)
+            if search_dict.get('asset_type'):
+                query = db.session.query(LogLogs).join(AssetAssets, LogLogs.dstip == AssetAssets.ip
+                                                       ).filter(AssetAssets.app_type.in_(search_dict.get('asset_type')))
+            else:
+                query = db.session.query(LogLogs)
             if search_dict.get('level'):
                 level_list = [int(level_str) for level_str in search_dict.get('level')]
                 query = query.filter(LogLogs.level.in_(level_list))
@@ -168,6 +173,8 @@ class LogLogsApi(Resource):
                 query = query.filter(LogLogs.srcip.like(search_dict.get('srcip')))
             if search_dict.get('dstip'):
                 query = query.filter(LogLogs.srcip.like(search_dict.get('dstip')))
+            if search_dict.get('server_os'):
+                query = query.filter(LogLogs.srcip.in_(search_dict.get('server_os')))
             logs = query.limit(per_page).offset(offset).all()
             total = query.count()
             log_list = [log._to_dict() for log in logs]
@@ -177,6 +184,23 @@ class LogLogsApi(Resource):
             return jsonify({"status": False, "desc": "获取日志信息失败"})
         return jsonify({"status": True, "page": page, "per_page": per_page,
                         "total": total, "logs": log_list})
+
+    def put(self, log_id):
+        try:
+            dealing_dict = request.get_json()
+            dealing = dealing_dict['dealing']
+            log = db.session.query(LogLogs).filter(LogLogs.log_id == log_id).first()
+            if not log:
+                raise Exception
+
+            log.dealing = int(dealing)
+            db.session.add(log)
+            db.session.commit()
+        except Exception, e:
+            logger.error(e)
+            db.session.rollback()
+            return jsonify({"status": False, "desc": "修改日志状态失败"})
+        return jsonify({"status": True, "desc": "修改日志状态成功"})
 
 
 api.add_resource(LogLogsApi, '/log_an/api/v1.0/log/logs', endpoint='log_logs')

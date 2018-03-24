@@ -112,6 +112,7 @@ class AssetsApi(Resource):
             asset.network = asset_dict.get('network')
             asset.manufacturer = asset_dict.get('manufacturer')
             asset.describe = asset_dict.get('describe')
+            asset.app_type = asset_dict.get('app_type')
             db.session.add(asset)
             db.session.commit()
         except Exception, e:

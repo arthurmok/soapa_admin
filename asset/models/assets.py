@@ -5,7 +5,7 @@ from sqlalchemy import func
 from werkzeug.contrib.cache import MemcachedCache
 
 from asset import db
-from log_an.models.log_an_model import LogLogs
+# from log_an.models.log_an_model import LogLogs
 
 mem_cache = MemcachedCache(['127.0.0.1:11211'])
 
@@ -71,9 +71,10 @@ class AssetAssets(db.Model):
     describe = db.Column(db.String(250), nullable=True)  # 备注
     alarm_count = db.Column(db.Integer, default=0)  # 告警信息
     create_time = db.Column(db.DateTime, nullable=False, default=datetime.now())
+    app_type = db.Column(db.String(50), nullable=True)
 
     def __init__(self, serial_no, name, location, owner, owner_contact, type_id, ip, agent_type_id,
-                 port=None, network=None, manufacturer=None, describe=None):
+                 port=None, network=None, manufacturer=None, describe=None, app_type=None):
         self.serial_no = serial_no
         self.name = name
         self.location = location
@@ -86,6 +87,7 @@ class AssetAssets(db.Model):
         self.network = network
         self.manufacturer = manufacturer
         self.describe = describe
+        self.app_type = app_type
 
     def _to_dict(self):
         asset_dict = {col.name: getattr(self, col.name, None) for col in self.__table__.columns}
@@ -103,7 +105,8 @@ class AssetAssets(db.Model):
                            asset_dict['owner_contact'], type_id=asset_dict['type_id'], ip=asset_dict['ip'],
                            agent_type_id=asset_dict['agent_type_id'],
                            port=asset_dict['port'], network=asset_dict['network'], manufacturer=
-                           asset_dict['manufacturer'], describe=asset_dict['describe']
+                           asset_dict['manufacturer'], describe=asset_dict['describe'],
+                           app_type=asset_dict.get('app_type')
                            )
 
     @staticmethod
@@ -122,32 +125,33 @@ class AssetAssets(db.Model):
         manufacturer = row[9]
         agent_type_id = AssetAgentType._get_agent_type_id_by_name(row[10])
         describe = row[11]
+        app_type = row[12] if len(row) >= 12 else None
         return AssetAssets(serial_no=serial_no, name=name, location=location, owner=owner,
                            owner_contact=owner_contact, type_id=type_id, ip=ip,
                            agent_type_id=agent_type_id, port=port, network=network,
-                           manufacturer=manufacturer, describe=describe
+                           manufacturer=manufacturer, describe=describe, app_type=app_type
                            )
 
 
-def _caculate_alarm(dstip, dstport=None):
-    thirty_days_ago = datetime.now() - timedelta(days=200)
-    if dstport:
-        alarm_count = db.session.query(func.count(LogLogs.log_id)).filter(
-            LogLogs.dstip == dstip, LogLogs.dstport == dstport, LogLogs.level > 8).filter(
-            LogLogs.attack_time > thirty_days_ago).scalar()
-    else:
-        query = db.session.query(func.count(LogLogs.log_id)).filter(
-            LogLogs.dstip == dstip, LogLogs.level > 8).filter(
-            LogLogs.attack_time > thirty_days_ago)
-        # print 11111, query
-        alarm_count = query.scalar()
-        # print alarm_count
-    return alarm_count
+# def _caculate_alarm(dstip, dstport=None):
+#     thirty_days_ago = datetime.now() - timedelta(days=200)
+#     if dstport:
+#         alarm_count = db.session.query(func.count(LogLogs.log_id)).filter(
+#             LogLogs.dstip == dstip, LogLogs.dstport == dstport, LogLogs.level > 8).filter(
+#             LogLogs.attack_time > thirty_days_ago).scalar()
+#     else:
+#         query = db.session.query(func.count(LogLogs.log_id)).filter(
+#             LogLogs.dstip == dstip, LogLogs.level > 8).filter(
+#             LogLogs.attack_time > thirty_days_ago)
+#         # print 11111, query
+#         alarm_count = query.scalar()
+#         # print alarm_count
+#     return alarm_count
 
 
 def get_asset_alarm_by_cache(asset):
     rv = mem_cache.get(str(asset.id))
-    if rv is None:
-        rv = _caculate_alarm(asset.ip, asset.port)
-        mem_cache.set(str(asset.id), rv, timeout=15 * 60)
-    return rv
+    # if rv is None:
+    #     rv = _caculate_alarm(asset.ip, asset.port)
+    #     mem_cache.set(str(asset.id), rv, timeout=15 * 60)
+    return rv if rv else 0
