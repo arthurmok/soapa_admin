@@ -192,11 +192,11 @@ def test_rules_upload_for_server():
 
 
 def test_agents_get():
-    # url = "%s/agents?pretty&offset=0&limit=5&sort=-ip,name" % AGENT_URL
-    # # print url
-    # resp = requests.get(url, auth=(AGENT_USER, AGENT_PWD), verify=False)
-    url = 'http://127.0.0.1:8092/ops/api/v1.0/agents?page=1&per_page=10&sort=-ip,name'
-    resp = requests.get(url)
+    url = "%s/agents?pretty&offset=0&limit=5&sort=-ip,name" % AGENT_URL
+    # print url
+    resp = requests.get(url, auth=(AGENT_USER, AGENT_PWD), verify=False)
+    # url = 'http://127.0.0.1:8092/ops/api/v1.0/agents?page=1&per_page=10&sort=-ip,name'
+    # resp = requests.get(url)
     print resp.json()
     print json.dumps(resp.json())
 
@@ -256,10 +256,34 @@ def test_agents_put():
     print json.dumps(resp.json())
 
 
+def test_agents_summary():
+
+    url = 'http://127.0.0.1:8092/ops/api/v1.0/agents/summary'
+    resp = requests.get(url)
+    print resp.json()
+    print json.dumps(resp.json())
+
+
+def test_agents_os():
+
+    url = 'http://127.0.0.1:8092/ops/api/v1.0/agents/summary?os'
+    resp = requests.get(url)
+    print resp.json()
+    print json.dumps(resp.json())
+
+
+def test_agents_rule_apply():
+
+    url = 'http://127.0.0.1:8092/ops/api/v1.0/agents/rules/apply'
+    resp = requests.put(url)
+    print resp.json()
+    print json.dumps(resp.json())
+
+
 if __name__ == '__main__':
     # test_ops_save_fields()
     # test_sec_field_type_get()
-    test_ops_rule_type_get()
+    # test_ops_rule_type_get()
     # test_sec_field_get()
     # test_expert_post()
     # test_expert_put()
@@ -274,11 +298,14 @@ if __name__ == '__main__':
     # test_solution_delete()
     # test_solution_put()
     # test_rules_upload_for_server()
-    # test_agents_get()
+    test_agents_get()
     # test_agents_get_by_id()
-    test_agents_get_key()
+    # test_agents_get_key()
     # test_agents_post()
     # test_agents_del_by_id()
     # test_agents_put()
     # test_agents_post_restart()
+    # test_agents_summary()
+    # test_agents_os()
+    # test_agents_rule_apply()
 

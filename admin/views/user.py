@@ -18,6 +18,7 @@ def index():
 @admin_app.route('/users/')
 # @login_required
 def user_list():
+    print 222222, request.cookies
     users = db.session.query(User)
     groups = db.session.query(Group)
     selectors = db.session.query(Selector)
@@ -64,8 +65,11 @@ def api_login():
         print 111111, mem_cache.get(user.name)
         # session['selectors'] = selectors
         login_user(user)
-        response = make_response(jsonify({"status": True, "desc": "用户登陆成功"}))
-        response.set_cookie('username', user.name)
+        response = make_response(jsonify({"status": True, "privileges": selectors}))
+        response.headers["Set-Cookie"] = "username=%s;Max-Age=1800; Path=/;Domain=%s" % (user.name, request.host)
+        # response.set_cookie('domain', 'localhost', max_age=1800)
+        # response.set_cookie('path', '/', max_age=1800)
+        # response.set_cookie('username', user.name, max_age=1800)
 
     except Exception, e:
         print e
@@ -110,10 +114,17 @@ def do_login():
         selectors = get_selectors(user)
         session['selectors'] = selectors
         login_user(user, remember_me)
+        # response = make_response(redirect(next_url))
+        # response.headers["Set-Cookie"] = "username=%s;Max-Age=1800; Path=/;Domain=localhost" % user.name
         return redirect(next_url)
+        # return response
     else:
         if current_user.is_active:
+            # response = make_response(redirect(next_url))
+            # print current_user.name
+            # response.headers["Set-Cookie"] = "username=%s;Max-Age=1800; Path=/;Domain=localhost" % current_user.name
             return redirect(next_url)
+            # return response
 
         return render_template('login.html')
 

@@ -58,13 +58,6 @@ class LogLogs(db.Model):
             city_name=self.city_name,
             country_name=self.country_name
         )
-        solution = None
-        if self.rule_id:
-            rule = db.session.query(LogRules).filter(LogRules.rule_id == self.rule_id).first()
-            if rule and rule.solution_id:
-                solution = db.session.query().filter().first()
-
-        log_detail['solution'] = solution if solution else None
         return log_detail
 
     def _to_dict(self):

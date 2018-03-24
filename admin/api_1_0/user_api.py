@@ -1,6 +1,6 @@
 # --*-- coding: utf-8 --*--
 
-from flask import request, jsonify
+from flask import request, jsonify, make_response
 from flask_restful import Resource
 from admin import db, logger, api
 from admin.models.user import User
@@ -9,6 +9,7 @@ from admin.models.user import User
 class UserApi(Resource):
     def get(self):
         try:
+            print 222222, request.cookies
             users = db.session.query(User).all()
             users_list = [user._to_dict() for user in users]
             # client_cookie = request.cookies.values()
@@ -17,7 +18,10 @@ class UserApi(Resource):
             logger.error(e)
             db.session.rollback()
             return jsonify({"status": False, "desc": "获取用户信息失败"})
-        return jsonify({"status": True, "users": users_list})
+        response = make_response(jsonify({"status": True, "users": users_list}))
+        response.headers["Set-Cookie"] = "username=%s;Max-Age=1800; Path=/;Domain=%s" % (user.name, request.host)
+        print 33333333
+        return response
 
     def post(self):
         try:

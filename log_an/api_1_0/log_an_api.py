@@ -11,6 +11,7 @@ from common.pagenate import get_page_items
 from config import D_UP_LOADS
 from log_an import api, db, logger
 from log_an.models.log_an_model import LogRuleType, LogRules, LogLogs
+from ops.models.ops_model import SecuritySolution
 
 
 class LogRuleTypeApi(Resource):
@@ -129,6 +130,11 @@ class LogLogsApi(Resource):
             if log_id:
                 log = db.session.query(LogLogs).filter(LogLogs.log_id == log_id).first()
                 log_detail = log._get_log_detail()
+                solution = None
+                if log.rule_id:
+                    solution = db.session.query(SecuritySolution).filter(SecuritySolution.rule_id
+                                                                         == log.rule_id).first()
+                log_detail['solution'] = solution.solution_info if solution else None
                 return jsonify({"status": True, "log_detail": log_detail})
             page, per_page, offset, search_msg = get_page_items()
             query = db.session.query(LogLogs)

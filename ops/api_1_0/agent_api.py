@@ -69,7 +69,7 @@ class AgentsApi(Resource):
                     res_dict = resp.json()
                     if res_dict.get('error'):
                         logger.error(json.dumps(res_dict))
-                        return jsonify({"status": False, "desc": "重启agents失败"})
+                        return jsonify({"status": False, "desc": res_dict.get("message")})
                 except Exception, e:
                     logger.error(e)
                     return jsonify({"status": False, "desc": "重启agents失败"})
@@ -79,7 +79,7 @@ class AgentsApi(Resource):
             res_dict = resp.json()
             if res_dict.get('error'):
                 logger.error(json.dumps(res_dict))
-                return jsonify({"status": False, "desc": "增加agent失败"})
+                return jsonify({"status": False, "desc": res_dict.get("message")})
         except Exception, e:
             logger.error(e)
             return jsonify({"status": False, "desc": "增加agent失败"})
@@ -92,7 +92,7 @@ class AgentsApi(Resource):
             res_dict = resp.json()
             if res_dict.get('error'):
                 logger.error(json.dumps(res_dict))
-                return jsonify({"status": False, "desc": "删除agent失败"})
+                return jsonify({"status": False, "desc": res_dict.get("message")})
         except Exception, e:
             logger.error(e)
             return jsonify({"status": False, "desc": "删除agent失败"})
@@ -107,12 +107,53 @@ class AgentsApi(Resource):
             res_dict = resp.json()
             if res_dict.get('error'):
                 logger.error(json.dumps(res_dict))
-                return jsonify({"status": False, "desc": "重启所有agent失败"})
+                return jsonify({"status": False, "desc": res_dict.get("message")})
         except Exception, e:
             logger.error(e)
             return jsonify({"status": False, "desc": "重启所有agent失败"})
         return jsonify({"status": True, "desc": "重启所有agent成功"})
 
 
+class AgentsSummary(Resource):
+    def get(self):
+        try:
+            if request.values.has_key('os'):
+                url = "%s/agents/summary/os?pretty" % AGENT_URL
+                resp = requests.get(url, auth=(AGENT_USER, AGENT_PWD), verify=False)
+                agent_dict = resp.json()
+                if agent_dict.get('error'):
+                    logger.error(json.dumps(agent_dict))
+                    return jsonify({"status": False, "desc": "获取agent操作行系统信息失败"})
+                return jsonify({"status": True, "agent_os": agent_dict.get('data')})
+            url = "%s/agents/summary?pretty" % AGENT_URL
+            resp = requests.get(url, auth=(AGENT_USER, AGENT_PWD), verify=False)
+            agents = resp.json()
+            if agents.get('error'):
+                logger.error(json.dumps(agents))
+                return jsonify({"status": False, "desc": agents.get("message")})
+
+        except Exception, e:
+            logger.error(e)
+            return jsonify({"status": False, "desc": "获取agent概要信息失败"})
+        return jsonify({"status": True, "agent_summary": agents.get('data')})
+
+    def put(self):
+        try:
+            url = "%s/manager/control/restart?pretty" % AGENT_URL
+            resp = requests.put(url, auth=(AGENT_USER, AGENT_PWD), verify=False)
+            res_dict = resp.json()
+            # print res_dict
+            if res_dict.get('error'):
+                logger.error(json.dumps(res_dict))
+                return jsonify({"status": False, "desc": res_dict.get("message")})
+
+        except Exception, e:
+            logger.error(e)
+            return jsonify({"status": False, "desc": "规则应用失败"})
+        return jsonify({"status": True, "desc": "规则应用成功"})
+
+
+api.add_resource(AgentsSummary, '/ops/api/v1.0/agents/rules/apply', methods=['PUT'], endpoint='ops_rule_apply')
+api.add_resource(AgentsSummary, '/ops/api/v1.0/agents/summary', methods=['GET'], endpoint='ops_agents_sum')
 api.add_resource(AgentsApi, '/ops/api/v1.0/agents', methods=['GET', 'POST', 'PUT'], endpoint='ops_agents')
 api.add_resource(AgentsApi, '/ops/api/v1.0/agents/<string:id>', methods=['GET', 'DELETE'], endpoint='ops_agents_id')
