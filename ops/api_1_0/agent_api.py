@@ -135,7 +135,11 @@ class AgentsSummary(Resource):
         except Exception, e:
             logger.error(e)
             return jsonify({"status": False, "desc": "获取agent概要信息失败"})
-        return jsonify({"status": True, "agent_summary": agents.get('data')})
+        agent_summary = agents.get('data')
+        agent_summary['NeverConnected'] = agent_summary['Never connected']
+        del(agent_summary['Never connected'])
+
+        return jsonify({"status": True, "agent_summary": agent_summary})
 
     def put(self):
         try:
