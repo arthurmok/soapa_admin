@@ -1,15 +1,18 @@
 # --*-- coding: utf-8 --*--
+import base64
 import json
 
 import os
 from xml.dom.minidom import parse
 import xml.dom.minidom
+
+import requests
 from flask import request, jsonify, send_file
 from flask_restful import Resource
 
 from asset.models.assets import AssetAssets
 from common.pagenate import get_page_items
-from config import D_UP_LOADS
+from config import D_UP_LOADS, AGENT_URL, AGENT_USER, AGENT_PWD
 from log_an import api, db, logger
 from log_an.models.log_an_model import LogRuleType, LogRules, LogLogs
 from ops.models.ops_model import SecuritySolution
@@ -72,9 +75,17 @@ class LogRuleFile(Resource):
                 f = files['file']
                 # file_name = secure_filename(f.filename)
                 file_name = f.filename
+
                 file_name_list = file_name.split('.')
                 if file_name_list[1] != 'xml':
                     return jsonify({"status": False, "desc": "文件类型错误"})
+                file_data = ''.join(f.readlines())
+                print file_data
+                file_data_bs64 = base64.b64encode(file_data)
+                print file_data_bs64
+                if not send_rule_file(file_name, file_data_bs64):
+                    return jsonify({"status": False, "desc": "文件无法上传至agent服务器"})
+
                 rule_file_name = os.path.join(D_UP_LOADS, file_name)
                 f.save(rule_file_name)
 
@@ -93,6 +104,26 @@ class LogRuleFile(Resource):
             db.session.rollback()
             return jsonify({"status": False, "desc": "上传规则文件错误"})
         return jsonify({"status": True, "desc": "上传规则文件成功"})
+
+
+def send_rule_file(file_name, file_data):
+    try:
+        header = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0",
+            "Content-Type": "application/json"
+        }
+        file_dict = {"name": file_name, "data": file_data}
+        url = "%s/agents/restart?pretty" % AGENT_URL
+        resp = requests.post(url=url, json=file_dict, headers=header, auth=(AGENT_USER, AGENT_PWD),
+                             verify=False)
+        res_dict = resp.json()
+        if res_dict.get('error'):
+            logger.error(json.dumps(res_dict))
+            return False
+    except Exception, e:
+        logger.error(e)
+        return False
+    return True
 
 
 def parse_rule_file(file_name, rule_type_id):
