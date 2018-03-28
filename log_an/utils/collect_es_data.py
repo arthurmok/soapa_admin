@@ -4,12 +4,13 @@ import json
 from time import sleep
 from elasticsearch import Elasticsearch
 from dateutil import parser
-from config import ES_URL
 from log_an.models.log_an_model import LogLogs, db
+from ops.models.ops_model import SystemConfig
 
 
 def get_es_data(index, dstip_list):
     sleep(0.1)
+    ES_URL = SystemConfig._get_conf('ES_URL')
     es = Elasticsearch(ES_URL)
     try:
         res = es.search(index=index,

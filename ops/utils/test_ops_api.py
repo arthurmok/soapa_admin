@@ -286,17 +286,19 @@ def test_conf_get():
     print resp.json()
     print json.dumps(resp.json())
 
+
 def test_conf_post():
     url = 'http://127.0.0.1:8092/ops/api/v1.0/conf'
     data = dict(
-        conf_name="test_conf",
-        conf_value="test_value"
+        conf_name="test_name",
+        conf_value="test_val"
     )
     json_data = json.dumps(data)
     print json_data
     resp = requests.post(url, json=data, headers=header)
     print resp.json()
     print json.dumps(resp.json())
+
 
 def test_conf_put():
     url = 'http://127.0.0.1:8092/ops/api/v1.0/conf/1'
@@ -343,10 +345,10 @@ if __name__ == '__main__':
     # test_agents_del_by_id()
     # test_agents_put()
     # test_agents_post_restart()
-    # test_agents_summary()
+    test_agents_summary()
     # test_agents_os()
     # test_agents_rule_apply()
     # test_conf_get()
     # test_conf_put()
     # test_conf_del()
-    test_conf_post()
+    # test_conf_post()

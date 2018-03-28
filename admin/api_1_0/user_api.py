@@ -9,7 +9,7 @@ from admin.models.user import User
 class UserApi(Resource):
     def get(self):
         try:
-            print 222222, request.cookies
+            # print 222222, request.cookies
             users = db.session.query(User).all()
             users_list = [user._to_dict() for user in users]
             # client_cookie = request.cookies.values()
@@ -20,7 +20,7 @@ class UserApi(Resource):
             return jsonify({"status": False, "desc": "获取用户信息失败"})
         response = make_response(jsonify({"status": True, "users": users_list}))
         response.headers["Set-Cookie"] = "username=%s;Max-Age=1800; Path=/;Domain=%s" % (user.name, request.host)
-        print 33333333
+        # print 33333333
         return response
 
     def post(self):
