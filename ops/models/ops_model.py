@@ -136,3 +136,26 @@ class SolutionFiles(db.Model):
             file_name=self.file_name,
             file_url=self.file_url
         )
+
+
+class SystemConfig(db.Model):
+    __tablename__ = 'ops_system_conf'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    conf_name = db.Column(db.String(50), nullable=False, unique=True)
+    conf_value = db.Column(db.String(250), default="")
+
+    def __init__(self, conf_name, conf_value=""):
+        self.conf_name = conf_name
+        self.conf_value = conf_value
+
+    def _to_dict(self):
+        return dict(
+            id=self.id,
+            conf_name=self.conf_name,
+            conf_value=self.conf_value
+        )
+
+    @staticmethod
+    def _get_conf(conf_name):
+        conf = db.session.query(SystemConfig).filter(SystemConfig.conf_name == conf_name).first()
+        return conf.conf_value if conf else ""

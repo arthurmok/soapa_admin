@@ -280,6 +280,44 @@ def test_agents_rule_apply():
     print json.dumps(resp.json())
 
 
+def test_conf_get():
+    url = 'http://127.0.0.1:8092/ops/api/v1.0/conf'
+    resp = requests.get(url)
+    print resp.json()
+    print json.dumps(resp.json())
+
+def test_conf_post():
+    url = 'http://127.0.0.1:8092/ops/api/v1.0/conf'
+    data = dict(
+        conf_name="test_conf",
+        conf_value="test_value"
+    )
+    json_data = json.dumps(data)
+    print json_data
+    resp = requests.post(url, json=data, headers=header)
+    print resp.json()
+    print json.dumps(resp.json())
+
+def test_conf_put():
+    url = 'http://127.0.0.1:8092/ops/api/v1.0/conf/1'
+    data = dict(
+        conf_name="ES_URL",
+        conf_value="114.55.219.41:9200"
+    )
+    json_data = json.dumps(data)
+    print json_data
+    resp = requests.put(url, json=data, headers=header)
+    print resp.json()
+    print json.dumps(resp.json())
+
+
+def test_conf_del():
+    url = 'http://127.0.0.1:8092/ops/api/v1.0/conf/1'
+    resp = requests.delete(url)
+    print resp.json()
+    print json.dumps(resp.json())
+
+
 if __name__ == '__main__':
     # test_ops_save_fields()
     # test_sec_field_type_get()
@@ -305,7 +343,10 @@ if __name__ == '__main__':
     # test_agents_del_by_id()
     # test_agents_put()
     # test_agents_post_restart()
-    test_agents_summary()
+    # test_agents_summary()
     # test_agents_os()
     # test_agents_rule_apply()
-
+    # test_conf_get()
+    # test_conf_put()
+    # test_conf_del()
+    test_conf_post()

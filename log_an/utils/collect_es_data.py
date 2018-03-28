@@ -19,8 +19,8 @@ def get_es_data(index, dstip_list):
                                     "must": [
                                         {
                                             "terms": {
-                                                # "dstip": dstip_list
-                                                "agent.ip": dstip_list
+                                                "dstip": dstip_list
+                                                # "agent.ip": dstip_list
                                             }
                                         }
                                     ],
