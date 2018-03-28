@@ -62,7 +62,7 @@ def api_login():
         # session['role'] = role.name
         selectors = get_selectors(user)
         mem_cache.set(user.name, selectors, timeout=30*60)
-        print 111111, mem_cache.get(user.name)
+        # print 111111, mem_cache.get(user.name)
         # session['selectors'] = selectors
         login_user(user)
         response = make_response(jsonify({"status": True, "privileges": selectors}))

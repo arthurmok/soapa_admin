@@ -12,10 +12,10 @@ from flask_restful import Resource
 
 from asset.models.assets import AssetAssets
 from common.pagenate import get_page_items
-from config import D_UP_LOADS, AGENT_URL, AGENT_USER, AGENT_PWD
+from config import D_UP_LOADS, AGENT_USER, AGENT_PWD
 from log_an import api, db, logger
 from log_an.models.log_an_model import LogRuleType, LogRules, LogLogs
-from ops.models.ops_model import SecuritySolution
+from ops.models.ops_model import SecuritySolution, SystemConfig
 
 
 class LogRuleTypeApi(Resource):
@@ -113,7 +113,11 @@ def send_rule_file(file_name, file_data):
             "Content-Type": "application/json"
         }
         file_dict = {"name": file_name, "data": file_data}
-        url = "%s/agents/restart?pretty" % AGENT_URL
+        agent_url = SystemConfig._get_conf('AGENT_URL')
+        if not agent_url:
+            logger.error("cannot find AGENT_URL from the system config")
+            return False
+        url = "%s/agents/restart?pretty" % agent_url
         resp = requests.post(url=url, json=file_dict, headers=header, auth=(AGENT_USER, AGENT_PWD),
                              verify=False)
         res_dict = resp.json()

@@ -5,8 +5,9 @@ from flask_restful import Resource
 import requests
 
 from common.pagenate import get_page_items
-from config import AGENT_URL, AGENT_USER, AGENT_PWD
+from config import AGENT_USER, AGENT_PWD
 from ops import logger, api
+from ops.models.ops_model import SystemConfig
 
 header = {
     # "Host": ob['domain'],
@@ -28,14 +29,14 @@ class AgentsApi(Resource):
         try:
             if id:
                 if request.values.has_key('key'):
-                    url = "%s/agents/%s/key?pretty" % (AGENT_URL, id)
+                    url = "%s/agents/%s/key?pretty" % (SystemConfig._get_conf('AGENT_URL'), id)
                     resp = requests.get(url, auth=(AGENT_USER, AGENT_PWD), verify=False)
                     agent_dict = resp.json()
                     if agent_dict.get('error'):
                         logger.error(json.dumps(agent_dict))
                         return jsonify({"status": False, "desc": "获取agent的key信息失败"})
                     return jsonify({"status": True, "agent_key": agent_dict.get('data')})
-                url = "%s/agents/%s?pretty" % (AGENT_URL, id)
+                url = "%s/agents/%s?pretty" % (SystemConfig._get_conf('AGENT_URL'), id)
                 resp = requests.get(url, auth=(AGENT_USER, AGENT_PWD), verify=False)
                 agent_dict = resp.json()
                 if agent_dict.get('error'):
@@ -44,7 +45,7 @@ class AgentsApi(Resource):
                 return jsonify({"status": True, "agent": agent_dict.get('data')})
             page, per_page, offset, search_msg = get_page_items()
             sort = request.values.get('sort', '-ip,name')
-            url = "%s/agents?pretty&offset=%d&limit=%d&sort=%s" % (AGENT_URL, offset, per_page, sort)
+            url = "%s/agents?pretty&offset=%d&limit=%d&sort=%s" % (SystemConfig._get_conf('AGENT_URL'), offset, per_page, sort)
             resp = requests.get(url, auth=(AGENT_USER, AGENT_PWD), verify=False)
             agents = resp.json()
             if agents.get('error'):
@@ -63,7 +64,7 @@ class AgentsApi(Resource):
             if request.values.has_key('restart'):
                 try:
                     print request.values.has_key('restart')
-                    url = "%s/agents/restart?pretty" % AGENT_URL
+                    url = "%s/agents/restart?pretty" % SystemConfig._get_conf('AGENT_URL')
                     resp = requests.post(url=url, json=agent_dict, headers=header, auth=(AGENT_USER, AGENT_PWD),
                                          verify=False)
                     res_dict = resp.json()
@@ -74,7 +75,7 @@ class AgentsApi(Resource):
                     logger.error(e)
                     return jsonify({"status": False, "desc": "重启agents失败"})
                 return jsonify({"status": True, "desc": "重启agents成功"})
-            url = "%s/agents?pretty" % AGENT_URL
+            url = "%s/agents?pretty" % SystemConfig._get_conf('AGENT_URL')
             resp = requests.post(url=url, json=agent_dict, headers=header, auth=(AGENT_USER, AGENT_PWD), verify=False)
             res_dict = resp.json()
             if res_dict.get('error'):
@@ -87,7 +88,7 @@ class AgentsApi(Resource):
 
     def delete(self, id):
         try:
-            url = "%s/agents/%s?pretty" % (AGENT_URL, id)
+            url = "%s/agents/%s?pretty" % (SystemConfig._get_conf('AGENT_URL'), id)
             resp = requests.delete(url, auth=(AGENT_USER, AGENT_PWD), verify=False)
             res_dict = resp.json()
             if res_dict.get('error'):
@@ -102,7 +103,7 @@ class AgentsApi(Resource):
     def put(self):
         try:
 
-            url = "%s/agents/restart?pretty" % AGENT_URL
+            url = "%s/agents/restart?pretty" % SystemConfig._get_conf('AGENT_URL')
             resp = requests.put(url=url, auth=(AGENT_USER, AGENT_PWD), verify=False)
             res_dict = resp.json()
             if res_dict.get('error'):
@@ -118,14 +119,14 @@ class AgentsSummary(Resource):
     def get(self):
         try:
             if request.values.has_key('os'):
-                url = "%s/agents/summary/os?pretty" % AGENT_URL
+                url = "%s/agents/summary/os?pretty" % SystemConfig._get_conf('AGENT_URL')
                 resp = requests.get(url, auth=(AGENT_USER, AGENT_PWD), verify=False)
                 agent_dict = resp.json()
                 if agent_dict.get('error'):
                     logger.error(json.dumps(agent_dict))
                     return jsonify({"status": False, "desc": "获取agent操作行系统信息失败"})
                 return jsonify({"status": True, "agent_os": agent_dict.get('data')})
-            url = "%s/agents/summary?pretty" % AGENT_URL
+            url = "%s/agents/summary?pretty" % SystemConfig._get_conf('AGENT_URL')
             resp = requests.get(url, auth=(AGENT_USER, AGENT_PWD), verify=False)
             agents = resp.json()
             if agents.get('error'):
@@ -143,7 +144,7 @@ class AgentsSummary(Resource):
 
     def put(self):
         try:
-            url = "%s/manager/control/restart?pretty" % AGENT_URL
+            url = "%s/manager/control/restart?pretty" % SystemConfig._get_conf('AGENT_URL')
             resp = requests.put(url, auth=(AGENT_USER, AGENT_PWD), verify=False)
             res_dict = resp.json()
             # print res_dict
