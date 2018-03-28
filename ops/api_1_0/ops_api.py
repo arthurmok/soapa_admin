@@ -6,7 +6,7 @@ from flask_restful import Resource
 from common.pagenate import get_page_items
 from config import D_UP_LOADS
 from ops.models.ops_model import SecurityField, SecurityFieldType, SecurityExpert, SecurityExpertRuleRela, \
-    SecuritySolution, SolutionFiles
+    SecuritySolution, SolutionFiles, SystemConfig
 from log_an.models.log_an_model import LogRuleType, LogRules
 from ops import db, logger, api
 
@@ -327,6 +327,59 @@ class SecuritySolutionFilesApi(Resource):
         return jsonify({"status": True, "desc": "处理方案文件上传成功"})
 
 
+class SystemConfigApi(Resource):
+    def get(self):
+        try:
+            conf_list = []
+            confs = db.session.query(SystemConfig).all()
+            for conf in confs:
+                conf_list.append(conf._to_dict())
+        except Exception, e:
+            logger.error(e)
+            db.session.rollback()
+            return jsonify({"status": False, "desc": "获取系统配置失败"})
+        return jsonify({"status": True, "system_conf": conf_list})
+
+    def post(self):
+        try:
+            conf_dict = request.get_json()
+            conf = SystemConfig(conf_dict['conf_name'], conf_dict['conf_value'])
+
+            db.session.add(conf)
+            db.session.commit()
+        except Exception, e:
+            logger.error(e)
+            db.session.rollback()
+            return jsonify({"status": False, "desc": "获取系统配置添加失败"})
+        return jsonify({"status": True, "desc": "获取系统配置添加成功"})
+
+    def put(self, id):
+        try:
+            conf_dict = request.get_json()
+            conf = db.session.query(SystemConfig).filter(SystemConfig.id == id).first()
+            conf.conf_name = conf_dict['conf_name']
+            conf.conf_value = conf_dict['conf_value']
+            db.session.add(conf)
+            db.session.commit()
+        except Exception, e:
+            logger.error(e)
+            db.session.rollback()
+            return jsonify({"status": False, "desc": "获取系统配置修改失败"})
+        return jsonify({"status": True, "desc": "获取系统配置修改成功"})
+
+    def delete(self, id):
+        try:
+            db.session.query(SystemConfig).filter(SystemConfig.id == id).delete()
+            db.session.commit()
+        except Exception, e:
+            logger.error(e)
+            db.session.rollback()
+            return jsonify({"status": False, "desc": "获取系统配置删除失败"})
+        return jsonify({"status": True, "desc": "获取系统配置删除成功"})
+
+
+api.add_resource(SystemConfigApi, '/ops/api/v1.0/conf', endpoint='sys_conf')
+api.add_resource(SystemConfigApi, '/ops/api/v1.0/conf/<int:id>', methods=['PUT', 'DELETE'], endpoint='sys_conf_id')
 api.add_resource(SecurityFieldApi, '/ops/api/v1.0/sec_fields', endpoint='sec_fields')
 api.add_resource(SecurityFieldTypeApi, '/ops/api/v1.0/sec_field_types', endpoint='sec_field_types')
 api.add_resource(SecurityExpertApi, '/ops/api/v1.0/experts', endpoint='sec_experts', methods=['GET', 'POST'])
